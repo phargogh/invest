@@ -7,8 +7,9 @@ import tempfile
 import shutil
 from datetime import datetime
 import time
-import pandas
+import pprint
 
+import pandas
 import numpy
 from osgeo import gdal
 from osgeo import osr
@@ -33,7 +34,7 @@ GDAL_ERROR_LEVELS = {
 
 
 @contextlib.contextmanager
-def capture_gdal_logging():
+def capture_gdal_logging(*args, **kwargs):
     """Context manager for logging GDAL errors with python logging.
 
     GDAL error messages are logged via python's logging system, at a severity
@@ -47,7 +48,7 @@ def capture_gdal_logging():
         ``None``"""
     osgeo_logger = logging.getLogger('osgeo')
 
-    def _log_gdal_errors(err_level, err_no, err_msg):
+    def _log_gdal_errors(*args, **kwargs):
         """Log error messages to osgeo.
 
         All error messages are logged with reasonable ``logging`` levels based
@@ -61,10 +62,19 @@ def capture_gdal_logging():
 
         Returns:
             ``None``"""
-        osgeo_logger.log(
-            level=GDAL_ERROR_LEVELS[err_level],
-            msg='[errno {err}] {msg}'.format(
-                err=err_no, msg=err_msg.replace('\n', ' ')))
+        try:
+            osgeo_logger.log(
+                level=GDAL_ERROR_LEVELS[kwargs['err_level']],
+                msg='[errno {err}] {msg}'.format(
+                    err=kwargs['err_no'],
+                    msg=kwargs['err_msg'].replace('\n', ' ')))
+        except KeyError:
+            osgeo_logger.log(
+                logging.WARNING,
+                'Unhandled GDAL error encountered: \nargs: %s\nkwargs: %s',
+                pprint.pformat(args),
+                pprint.pformat(kwargs),
+            )
 
     gdal.PushErrorHandler(_log_gdal_errors)
     try:
@@ -459,7 +469,7 @@ def build_lookup_from_csv(
     table = pandas.read_csv(
         table_path, sep=None, engine='python', encoding=encoding)
     header_row = list(table)
-    
+
     if to_lower:
         key_field = key_field.lower()
         header_row = [
