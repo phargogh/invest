@@ -51,7 +51,7 @@ jobs:
                   architecture: ${{ env.PYTHON_ARCH }}
 
             - name: Install python dependencies
-              shell: powershell
+              shell: cmd
               env:
                   PIP_EXTRA_INDEX_URL: "http://pypi.naturalcapitalproject.org/simple/"
                   PIP_TRUSTED_HOST: "pypi.naturalcapitalproject.org"
