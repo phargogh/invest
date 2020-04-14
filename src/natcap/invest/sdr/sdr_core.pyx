@@ -180,7 +180,8 @@ cdef class _ManagedRaster:
             return
 
         raster = gdal.OpenEx(
-            self.raster_path, gdal.GA_Update | gdal.OF_RASTER)
+            self.raster_path,
+            gdal.GA_Update | gdal.OF_RASTER | gdal.OF_SHARED)
         raster_band = raster.GetRasterBand(self.band_id)
 
         # if we get here, we're in write_mode
@@ -282,7 +283,7 @@ cdef class _ManagedRaster:
         if yoff+win_ysize > self.raster_y_size:
             win_ysize = win_ysize - (yoff+win_ysize - self.raster_y_size)
 
-        raster = gdal.OpenEx(self.raster_path, gdal.OF_RASTER)
+        raster = gdal.OpenEx(self.raster_path, gdal.OF_RASTER | gdal.OF_SHARED)
         raster_band = raster.GetRasterBand(self.band_id)
         block_array = raster_band.ReadAsArray(
             xoff=xoff, yoff=yoff, win_xsize=win_xsize,
@@ -301,7 +302,8 @@ cdef class _ManagedRaster:
 
         if self.write_mode:
             raster = gdal.OpenEx(
-                self.raster_path, gdal.GA_Update | gdal.OF_RASTER)
+                self.raster_path,
+                gdal.GA_Update | gdal.OF_RASTER | gdal.OF_SHARED)
             raster_band = raster.GetRasterBand(self.band_id)
 
         block_array = numpy.empty(
