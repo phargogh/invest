@@ -647,7 +647,15 @@ def _build_affected_vector(
 
     LOGGER.info("building infrastructure lookup dict")
     for infrastructure_feature in infrastructure_layer:
-        infrastructure_geom = infrastructure_feature.GetGeometryRef().Clone()
+        infrastructure_geom = infrastructure_feature.GetGeometryRef()
+        if not infrastructure_geom:
+            LOGGER.warning(
+                f"Infrastructure feature {infrastructure_feature.GetFID()} "
+                f"doesn't have a geometry; skipping.")
+            continue
+
+        # Copy the geometry so we don't transform the original feature.
+        infrastructure_geom = infrastructure_geom.Clone()
         infrastructure_geom.Transform(infrastructure_to_target)
         infrastructure_geometry_list.append({
             'geom': shapely.wkb.loads(

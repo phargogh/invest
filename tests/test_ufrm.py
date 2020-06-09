@@ -6,6 +6,7 @@ import shutil
 import os
 
 from osgeo import gdal
+from osgeo import ogr
 import numpy
 import pygeoprocessing
 
@@ -92,6 +93,28 @@ class UFRMTests(unittest.TestCase):
         # expected result observed from regression run.
         expected_result = 156070.36
         self.assertAlmostEqual(result_sum, expected_result, places=0)
+
+    def test_ufrm_infrastructure_missing_geometry(self):
+        """UFRM: infrastructure vector missing geometry."""
+        args = self._make_args()
+
+        # Copy the existing built infrastructure vector and delete all of the
+        # geometries from the layer.
+        new_built_infra_vector = os.path.join(
+            self.workspace_dir, 'infra.gpkg')
+        shutil.copyfile(
+            args['built_infrastructure_vector_path'],
+            new_built_infra_vector)
+
+        vector = ogr.Open(new_built_infra_vector, gdal.GA_Update)
+        layer = vector.GetLayer()
+        for feature in layer:
+            geometry = feature.GetGeometryRef()
+            new_geometry = ogr.Geometry(geometry.GetGeometryType())
+            feature.SetGeometry(new_geometry)
+            import pdb; pdb.set_trace()
+
+            print(feature.GetGeometryRef().ExportToWkt())
 
     def test_ufrm_value_error_on_bad_soil(self):
         """UFRM: assert exception on bad soil raster values."""
