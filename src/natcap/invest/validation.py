@@ -276,7 +276,9 @@ def _check_projection(srs, projected, projection_units):
     return None
 
 
-def check_raster(filepath, projected=False, projection_units=None):
+def check_raster(
+        filepath, projected=False, projection_units=None,
+        require_nodata=True):
     """Validate a GDAL Raster on disk.
 
     Args:
@@ -287,6 +289,9 @@ def check_raster(filepath, projected=False, projection_units=None):
         projection_units=None (string): The string label (case-insensitive)
             indicating the required linear units of the projection.  If
             ``None``, the projection units will not be checked.
+        require_nodata=True (bool): Whether a nodata value must be defined.  If
+            ``True`` and the raster has multiple bands, a nodata value must be
+            defined for each band in the raster.
 
     Returns:
         A string error message if an error was found.  ``None`` otherwise.
@@ -310,6 +315,26 @@ def check_raster(filepath, projected=False, projection_units=None):
     if projection_warning:
         gdal_dataset = None
         return projection_warning
+
+    if require_nodata:
+        bands_without_nodata = set()
+        for band_index in range(1, gdal_dataset.RasterCount + 1):
+            band = gdal_dataset.GetRasterBand(band_index)
+            band_nodata = band.GetNoDataValue()
+
+            # Can't use truthiness here, since 0 is a valid nodata value.
+            if band_nodata is None:
+                bands_without_nodata.add(band_index)
+            band = None
+
+        if bands_without_nodata:
+            if len(bands_without_nodata) == 1:
+                return f"Band 1 is missing a nodata value."
+            else:
+                band_indexes = [str(i) for i in sorted(bands_without_nodata)]
+                return (
+                    f"Bands {', '.join(band_indexes)} are "
+                    "missing nodata values.")
 
     gdal_dataset = None
     return None

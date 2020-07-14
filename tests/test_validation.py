@@ -308,7 +308,7 @@ class RasterValidation(unittest.TestCase):
             bad_raster.write('not a raster')
 
         error_msg = validation.check_raster(filepath)
-        self.assertTrue('could not be opened as a GDAL raster' in error_msg)
+        self.assertIn('could not be opened as a GDAL raster', error_msg)
 
     def test_raster_not_projected(self):
         """Validation: test when a raster is not linearly projected."""
@@ -324,7 +324,7 @@ class RasterValidation(unittest.TestCase):
         raster = None
 
         error_msg = validation.check_raster(filepath, projected=True)
-        self.assertTrue('must be projected in linear units' in error_msg)
+        self.assertIn('must be projected in linear units', error_msg)
 
     def test_raster_projected_in_m(self):
         """Validation: test when a raster is projected in meters."""
@@ -341,14 +341,15 @@ class RasterValidation(unittest.TestCase):
 
         for unit in ('m', 'meter', 'metre', 'meters', 'metres'):
             error_msg = validation.check_raster(
-                filepath, projected=True, projection_units=unit)
+                filepath, projected=True, projection_units=unit,
+                require_nodata=False)
             self.assertEqual(error_msg, None)
 
         # Check error message when we validate that the raster should be
         # projected in feet.
         error_msg = validation.check_raster(
             filepath, projected=True, projection_units='feet')
-        self.assertTrue('projected in feet' in error_msg)
+        self.assertIn('projected in feet', error_msg)
 
     def test_raster_incorrect_units(self):
         """Validation: test when a raster projection has wrong units."""
@@ -365,7 +366,38 @@ class RasterValidation(unittest.TestCase):
 
         error_msg = validation.check_raster(
             filepath, projected=True, projection_units='m')
-        self.assertTrue('must be projected in meters' in error_msg)
+        self.assertIn('must be projected in meters', error_msg)
+
+    def test_raster_without_nodata_1_band(self):
+        """Validation: test when a 1-band raster is missing a nodata value."""
+        from natcap.invest import validation
+
+        driver = gdal.GetDriverByName('GTiff')
+        filepath = os.path.join(self.workspace_dir, 'raster.tif')
+        raster = driver.Create(filepath, 3, 3, 1, gdal.GDT_Int32)
+        wgs84_srs = osr.SpatialReference()
+        wgs84_srs.ImportFromEPSG(4326)
+        raster.SetProjection(wgs84_srs.ExportToWkt())
+        raster = None
+
+        error_msg = validation.check_raster(filepath)
+        self.assertIn('Band 1 is missing a nodata value.', error_msg)
+
+    def test_raster_without_nodata_3_band(self):
+        """Validation: test when a 3-band raster is missing a nodata value."""
+        from natcap.invest import validation
+
+        driver = gdal.GetDriverByName('GTiff')
+        filepath = os.path.join(self.workspace_dir, 'raster.tif')
+        raster = driver.Create(filepath, 3, 3, 3, gdal.GDT_Int32)
+        wgs84_srs = osr.SpatialReference()
+        wgs84_srs.ImportFromEPSG(4326)
+        raster.SetProjection(wgs84_srs.ExportToWkt())
+        raster = None
+
+        error_msg = validation.check_raster(filepath)
+        self.assertIn(
+            'Bands 1, 2, 3 are missing nodata values.', error_msg)
 
 
 class VectorValidation(unittest.TestCase):
@@ -990,6 +1022,9 @@ class TestValidationFromSpec(unittest.TestCase):
             wgs84_srs.ImportFromEPSG(epsg_code)
             raster.SetProjection(wgs84_srs.ExportToWkt())
             raster.SetGeoTransform(geotransform)
+            band = raster.GetRasterBand(1)
+            band.SetNoDataValue(0)
+            band = None
             raster = None
 
         gpkg_driver = gdal.GetDriverByName('GPKG')
@@ -1057,6 +1092,9 @@ class TestValidationFromSpec(unittest.TestCase):
             wgs84_srs.ImportFromEPSG(epsg_code)
             raster.SetProjection(wgs84_srs.ExportToWkt())
             raster.SetGeoTransform(geotransform)
+            band = raster.GetRasterBand(1)
+            band.SetNoDataValue(0)
+            band = None
             raster = None
 
         args = {
