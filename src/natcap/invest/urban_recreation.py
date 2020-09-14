@@ -142,3 +142,29 @@ def execute(args):
     greenspace_lucode_map = utils.build_lookup_from_csv(
         args['greenspace_lulc_table_path'], 'lucode', to_lower=True)
 
+    align_dir = os.path.join(intermediate_dir, 'not_for_humans')
+
+    base_raster_path_list = [
+        args['lulc_raster_path'], args['population_count_raster_path']]
+    align_path_list = [
+        os.path.join(align_dir, os.path.basename(path))
+        for path in base_raster_path_list]
+
+    lulc_raster_info = pygeoprocessing.get_raster_info(
+        args['lulc_raster_path'])
+
+    pygeoprocessing.align_and_resize_raster_stack(
+        base_raster_path_list, align_path_list, ['near', 'near'],
+        lulc_raster_info['pixel_size'], 'intersect',
+        raster_align_index=0,
+        target_projection_wkt=lulc_raster_info['projection_wkt'])
+
+    LULC_INDEX = 0
+    greenspace_raster_path = os.path.join(
+        intermediate_dir, f'greenspace{file_suffix}.tif')
+
+    pygeoprocessing.reclassify_raster(
+        (align_path_list[LULC_INDEX], 1), greenspace_lucode_map,
+        greenspace_raster_path, gdal.GDT_Byte,
+        None, values_required=False)
+
