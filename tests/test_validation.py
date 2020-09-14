@@ -1,16 +1,21 @@
+"""Testing module for validation."""
 # encoding=UTF-8
 import tempfile
 import unittest
 from unittest.mock import Mock
+import functools
 import os
 import shutil
 import string
+import time
+import warnings
 
 from osgeo import gdal, osr, ogr
 import pandas
 
 
 class SpatialOverlapTest(unittest.TestCase):
+    """Test Spatial Overlap."""
     def setUp(self):
         """Create a new workspace to use for each test."""
         self.workspace_dir = tempfile.mkdtemp()
@@ -101,6 +106,7 @@ class SpatialOverlapTest(unittest.TestCase):
 
 
 class ValidatorTest(unittest.TestCase):
+    """Test Validator."""
     def test_args_wrong_type(self):
         """Validation: check for error when args is the wrong type."""
         from natcap.invest import validation
@@ -199,8 +205,37 @@ class ValidatorTest(unittest.TestCase):
         self.assertTrue('could not be interpreted as a number'
                         in validation_errors[0][1])
 
+    def test_timeout_succeed(self):
+        from natcap.invest import validation
+
+        # both args and the kwarg should be passed to the function
+        def func(arg1, arg2, kwarg=None):
+            self.assertEqual(kwarg, 'kwarg')
+            time.sleep(1)
+
+        # this will raise an error if the timeout is exceeded
+        # timeout defaults to 5 seconds so this should pass
+        validation.timeout(func, 'arg1', 'arg2', kwarg='kwarg')
+
+    def test_timeout_fail(self):
+        from natcap.invest import validation
+
+        # both args and the kwarg should be passed to the function
+        def func(arg):
+            time.sleep(6)
+
+        # this will return a warning if the timeout is exceeded
+        # timeout defaults to 5 seconds so this should fail
+        with warnings.catch_warnings(record=True) as ws:
+            # cause all warnings to always be triggered
+            warnings.simplefilter("always")
+            validation.timeout(func, 'arg')
+            self.assertTrue(len(ws) == 1)
+            self.assertTrue('timed out' in str(ws[0].message))
+
 
 class DirectoryValidation(unittest.TestCase):
+    """Test Directory Validation."""
     def setUp(self):
         """Create a new workspace to use for each test."""
         self.workspace_dir = tempfile.mkdtemp()
@@ -255,6 +290,7 @@ class DirectoryValidation(unittest.TestCase):
 
 
 class FileValidation(unittest.TestCase):
+    """Test File Validator."""
     def setUp(self):
         """Create a new workspace to use for each test."""
         self.workspace_dir = tempfile.mkdtemp()
@@ -283,6 +319,7 @@ class FileValidation(unittest.TestCase):
 
 
 class RasterValidation(unittest.TestCase):
+    """Test Raster Validation."""
     def setUp(self):
         """Create a new workspace to use for each test."""
         self.workspace_dir = tempfile.mkdtemp()
@@ -369,6 +406,7 @@ class RasterValidation(unittest.TestCase):
 
 
 class VectorValidation(unittest.TestCase):
+    """Test Vector Validation."""
     def setUp(self):
         """Create a new workspace to use for each test."""
         self.workspace_dir = tempfile.mkdtemp()
@@ -448,6 +486,7 @@ class VectorValidation(unittest.TestCase):
 
 
 class FreestyleStringValidation(unittest.TestCase):
+    """Test Freestyle String Validation."""
     def test_int(self):
         """Validation: test that an int can be a valid string."""
         from natcap.invest import validation
@@ -472,6 +511,7 @@ class FreestyleStringValidation(unittest.TestCase):
 
 
 class OptionStringValidation(unittest.TestCase):
+    """Test Option String Validation."""
     def test_valid_option(self):
         """Validation: test that a string is a valid option."""
         from natcap.invest import validation
@@ -487,6 +527,7 @@ class OptionStringValidation(unittest.TestCase):
 
 
 class NumberValidation(unittest.TestCase):
+    """Test Number Validation."""
     def test_string(self):
         """Validation: test when a string is not a number."""
         from natcap.invest import validation
@@ -522,6 +563,7 @@ class NumberValidation(unittest.TestCase):
 
 
 class BooleanValidation(unittest.TestCase):
+    """Test Boolean Validation."""
     def test_actual_bool(self):
         """Validation: test when boolean type objects are passed."""
         from natcap.invest import validation
@@ -544,6 +586,7 @@ class BooleanValidation(unittest.TestCase):
 
 
 class CSVValidation(unittest.TestCase):
+    """Test CSV Validation."""
     def setUp(self):
         """Create a new workspace to use for each test."""
         self.workspace_dir = tempfile.mkdtemp()
@@ -665,8 +708,50 @@ class CSVValidation(unittest.TestCase):
             target_file, required_fields=['field_a'], excel_ok=False)
         self.assertTrue('could not be opened as a CSV' in error_msg)
 
+    def test_slow_to_open(self):
+        """Test timeout by mocking a CSV that is slow to open"""
+        from natcap.invest import validation
+
+        # make an actual file so that `check_file` will pass
+        path = os.path.join(self.workspace_dir, 'slow.csv')
+        with open(path, 'w') as file:
+            file.write('1,2,3')
+
+        spec = {
+            "mock_csv_path": {
+                "type": "csv",
+                "required": True,
+                "about": "A CSV that will be mocked.",
+                "name": "CSV"
+            }
+        }
+
+        # validate a mocked CSV that will take 6 seconds to return a value
+        args = {"mock_csv_path": path}
+
+        # define a side effect for the mock that will sleep
+        # for longer than the allowed timeout
+        def delay(*args, **kwargs):
+            time.sleep(6)
+            return []
+
+        # make a copy of the real _VALIDATION_FUNCS and override the CSV function
+        mock_validation_funcs = {key: val for key, val in validation._VALIDATION_FUNCS.items()}
+        mock_validation_funcs['csv'] = functools.partial(validation.timeout, delay)
+
+
+        # replace the validation.check_csv with the mock function, and try to validate
+        with unittest.mock.patch('natcap.invest.validation._VALIDATION_FUNCS', mock_validation_funcs):
+            with warnings.catch_warnings(record=True) as ws:
+                # cause all warnings to always be triggered
+                warnings.simplefilter("always")
+                validation.validate(args, spec)
+                self.assertTrue(len(ws) == 1)
+                self.assertTrue('timed out' in str(ws[0].message))
+
 
 class TestValidationFromSpec(unittest.TestCase):
+    """Test Validation From Spec."""
     def setUp(self):
         """Create a new workspace to use for each test."""
         self.workspace_dir = tempfile.mkdtemp()

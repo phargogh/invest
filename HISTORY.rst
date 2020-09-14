@@ -1,11 +1,86 @@
+..
+  Changes should be grouped for readability.
+
+  InVEST model names:
+  - Carbon
+  - Coastal Blue Carbon
+  - Coastal Vulnerability
+  - Crop Production
+  - Delineateit
+  - Finfish
+  - Fisheries
+  - Forest Carbon Edge Effects
+  - Globio
+  - Habitat Quality
+  - HRA
+  - Annual Water Yield
+  - NDR
+  - Pollination
+  - Recreation
+  - Routedem
+  - Scenario Generator
+  - Scenic Quality
+  - SDR
+  - Seasonal Water Yield
+  - Urban Cooling
+  - Urban Flood Risk
+  - Wave Energy
+  - Wind Energy
+
+  Everything else:
+  - General
+
+
 .. :changelog:
+Unreleased Changes (3.9)
+------------------------
+* General:
+  * Deprecating GDAL 2 and adding support for GDAL 3.
+  * Adding function in utils.py to handle InVEST coordindate transformations.
+  * Making InVEST compatible with Pygeoprocessing 2.0 by updating:
+    * ``convolve_2d`` keyword ``ignore_nodata`` to ``ignore_nodata_and_edges``.
+    * ``get_raster_info`` / ``get_vector_info`` keyword ``projection`` to
+      ``projection_wkt``.
+  * Fixed bug that was causing a TypeError when certain input rasters had an
+    undefined nodata value. Undefined nodata values should now work everywhere.
+  * Include logging in python script generated from "Save to python script..."
+    in the "Development" menu. Now logging messages from the model execution
+    will show up when you run the script.
+* Habitat Quality:
+    * Refactor of Habitat Quality that implements TaskGraph
+    * Threat files are now indicated in the Threat Table csv input under 
+      required columns: ``BASE_PATH``, ``CUR_PATH``, ``FUT_PATH``.
+    * Threat and Sensitivity column names are now case-insensitive.
+    * Sensitivity threat columns now match threat names from Threat Table 
+      exactly, without the need for "L_". "L_" prefix is deprecated.
+    * Threat raster input folder has been removed.
+    * Validation enhancements that check whether threat raster paths are valid.
+    * HQ update to User's Guide.
+    * Changing sample data to reflect Threat Table csv input changes and 
+      bumping revision.
+    * More comprehensive testing for Habitat Quality and validation.
+    * Checking if Threat raster values are between 0 and 1 range, raising 
+      ValueError if not. No longer snapping values less than 0 to 0 and greater
+      than 1 to 1.
+    * Fixing bug that was setting Threat raster values to 1 even if they were 
+      floats between 0 and 1.
+* SDR:
+  * Fixing an issue where the LS factor should be capped to an upstream area of
+    333^2 m^2. In previous versions the LS factor was erroniously capped to
+    "333" leading to high export spikes in some pixels.
 
 ..
-Unreleased Changes
+..
+  Unreleased Changes
+  ------------------
+
+3.8.8 (2020-09-04)
 ------------------
 * Coastal Vulnerability
     * Improved handling of invalid AOI geometries to avoid crashing and instead
       fix the geometry when possible and skip it otherwise.
+    * Added validation check that shows a warning if the SLR vector is not 
+      a point or multipoint geometry.
 * Urban Cooling
     * Energy units are now (correctly) expressed in kWh.  They were previously
       (incorrectly) expressed in kW.
@@ -35,6 +110,9 @@ Unreleased Changes
 * Recreation
     * Validate values in the type column of predictor tables early in execution. Raise
       a ValueError if a type value isn't valid (leading/trailing whitespace is okay).
+* Validation
+    * Set a 5-second timeout on validation functions that access a file. This will raise 
+      a warning and prevent validation from slowing down the UI too much.
 
 3.8.7 (2020-07-17)
 ------------------
@@ -113,9 +191,10 @@ Unreleased Changes
 
 3.8.3 (2020-05-29)
 ------------------
-* SDR's compiled core now defines its own ``SQRT2`` instead of relying on an
-  available standard C library definition.  This new definition helps to avoid
-  some compiler issues on Windows.
+* sdr
+  * SDR's compiled core now defines its own ``SQRT2`` instead of relying on an
+    available standard C library definition. This new definition helps to avoid
+    some compiler issues on Windows.
 
 3.8.2 (2020-05-15)
 ------------------

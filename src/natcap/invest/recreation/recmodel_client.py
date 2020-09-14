@@ -1451,7 +1451,7 @@ def _validate_same_projection(base_vector_path, table_path):
     Parameters:
         base_vector_path (string): path to a GIS vector
         table_path (string): path to a csv table that has at least
-            the field 'path' 
+            the field 'path'
 
     Returns:
         None
@@ -1461,7 +1461,7 @@ def _validate_same_projection(base_vector_path, table_path):
             are not identical to the projection in base_vector_path
 
     """
-    # This will load the table as a list paths which we can iterate through 
+    # This will load the table as a list of paths which we can iterate through
     # without bothering the rest of the table structure
     data_paths = utils.read_csv_to_dataframe(
         table_path, to_lower=True, squeeze=True)['path'].tolist()
