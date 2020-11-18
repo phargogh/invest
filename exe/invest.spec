@@ -48,6 +48,7 @@ if is_darwin:
             glob.glob(os.path.join(conda_env, 'lib', 'libgeos*.dylib')),
             glob.glob(os.path.join(conda_env, 'lib', 'libproj*.dylib')),
         )
+    ]
 elif is_win:
     # Adapted from
     # https://shanetully.com/2013/08/cross-platform-deployment-of-python-applications-with-pyinstaller/
