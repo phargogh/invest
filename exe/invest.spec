@@ -43,7 +43,11 @@ if is_darwin:
     # add rtree dependency dynamic libraries from conda environment
     a.binaries += [
         (os.path.basename(name), name, 'BINARY') for name in
-        glob.glob(os.path.join(conda_env, 'lib/libspatialindex*.dylib'))]
+        itertools.chain(
+            glob.glob(os.path.join(conda_env, 'lib', 'libspatialindex*.dylib')),
+            glob.glob(os.path.join(conda_env, 'lib', 'libgeos*.dylib')),
+            glob.glob(os.path.join(conda_env, 'lib', 'libproj*.dylib')),
+        )
 elif is_win:
     # Adapted from
     # https://shanetully.com/2013/08/cross-platform-deployment-of-python-applications-with-pyinstaller/
