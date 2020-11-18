@@ -177,7 +177,7 @@ jobs:
                   key: mac-py${{ env.PYTHON_VERSION }}-${{ env.PYTHON_ARCH}}-conda-${{ hashFiles('**/requirements*.txt') }}-exe
 
             - name: Set up conda
-              uses: goanpeca/setup-miniconda@v1.1.2
+              uses: conda-incubator/setup-miniconda@v2
               with:
                   activate-environment: mac-env  # This is also hardcoded in Pyinstaller's invest.spec
                   auto-update-conda: true
