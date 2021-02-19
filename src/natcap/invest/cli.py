@@ -11,6 +11,9 @@ import json
 import warnings
 import platform
 import os
+import contextlib
+import traceback
+import textwrap
 
 try:
     from . import __version__
@@ -23,7 +26,7 @@ except (ValueError, ImportError):
     from natcap.invest import datastack
 
 
-DEFAULT_EXIT_CODE = 1
+DEFAULT_ERROR_CODE = 1
 LOGGER = logging.getLogger(__name__)
 _UIMETA = collections.namedtuple('UIMeta', 'humanname pyname gui aliases')
 
@@ -532,7 +535,7 @@ def main(user_args=None):
         # Creating this warning for future us to alert us to potential issues
         # if/when we forget to define QT_MAC_WANTS_LAYER at runtime.
         if (platform.system() == "Darwin" and
-                "QT_MAC_WANTS_LAYER"  not in os.environ):
+                "QT_MAC_WANTS_LAYER" not in os.environ):
             warnings.warn(
                 "Mac OS X Big Sur may require the 'QT_MAC_WANTS_LAYER' "
                 "environment variable to be defined in order to run.  If "
@@ -560,11 +563,13 @@ def main(user_args=None):
             # verbosity) and exit the argparse application with exit code 1 and
             # a helpful error message.
             LOGGER.exception('Could not load datastack')
-            parser.exit(DEFAULT_EXIT_CODE,
+            parser.exit(DEFAULT_ERROR_CODE,
                         'Could not load datastack: %s\n' % str(error))
 
         if args.workspace:
             model_form.workspace.set_value(args.workspace)
+
+        raise ValueError('Foo')
 
         # Run the UI's event loop
         quickrun = False
@@ -575,7 +580,7 @@ def main(user_args=None):
 
         # Handle a graceful exit
         if model_form.form.run_dialog.messageArea.error:
-            parser.exit(DEFAULT_EXIT_CODE,
+            parser.exit(DEFAULT_ERROR_CODE,
                         'Model %s: run failed\n' % args.model)
 
         if app_exitcode != 0:
@@ -583,6 +588,44 @@ def main(user_args=None):
                         'App terminated with exit code %s\n' % app_exitcode)
 
 
+@contextlib.contextmanager
+def confirm_close_on_exception():
+    try:
+        yield
+    except Exception as error:
+        # This is intentionally broad so we capture all exceptions that
+        # percolate up to this level.  ``parser.exit`` does not trigger this
+        # handler.
+
+        def _adjust_leading_whitespace(text):
+            return textwrap.indent(
+                text=textwrap.dedent(text),
+                prefix=' '*4)
+
+        print(_adjust_leading_whitespace(f"""\
+
+            An error was encountered that may have prevented InVEST from
+            starting.  For assistance, please post this error to
+            https://community.naturalcapitalproject.org.
+
+            Build details:
+              * InVEST {__version__}
+                * Install location: {sys.executable}
+                * Cmdline args: {sys.argv}
+              * FS encoding: {sys.getfilesystemencoding()}
+
+        """), file=sys.stderr)
+
+        print(_adjust_leading_whitespace("""\
+            Exception:
+            %s
+        """) % traceback.format_exc(), file=sys.stderr)
+
+        _ = input("Press enter to exit the application.")
+        raise error
+
+
 if __name__ == '__main__':
     multiprocessing.freeze_support()
-    main()
+    with confirm_close_on_exception():
+        main()
