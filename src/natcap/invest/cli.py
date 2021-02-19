@@ -569,8 +569,6 @@ def main(user_args=None):
         if args.workspace:
             model_form.workspace.set_value(args.workspace)
 
-        raise ValueError('Foo')
-
         # Run the UI's event loop
         quickrun = False
         if args.subcommand == 'quickrun':
