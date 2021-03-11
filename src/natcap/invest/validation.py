@@ -1,5 +1,6 @@
 """Common validation utilities for InVEST models."""
 import ast
+import gettext
 import inspect
 import logging
 import pprint
@@ -24,11 +25,12 @@ from . import utils
 CHECK_ALL_KEYS = None
 MESSAGE_REQUIRED = 'Parameter is required but is missing or has no value'
 LOGGER = logging.getLogger(__name__)
+_ = gettext.gettext
 
 
 WORKSPACE_SPEC = {
-    "name": "Workspace",
-    "about": (
+    "name": _("Workspace"),
+    "about": _(
         "The folder where all intermediate and output files of the model "
         "will be written.  If this folder does not exist, it will be "
         "created."),
@@ -41,8 +43,8 @@ WORKSPACE_SPEC = {
 }
 
 SUFFIX_SPEC = {
-    "name": "File suffix",
-    "about": (
+    "name": _("File suffix"),
+    "about": _(
         'A string that will be added to the end of all files '
         'written to the workspace.'),
     "type": "freestyle_string",
@@ -56,8 +58,8 @@ SUFFIX_SPEC = {
 }
 
 N_WORKERS_SPEC = {
-    "name": "Taskgraph n_workers parameter",
-    "about": (
+    "name": _("Taskgraph n_workers parameter"),
+    "about": _(
         "The n_workers parameter to provide to taskgraph. "
         "-1 will cause all jobs to run synchronously. "
         "0 will run all jobs in the same process, but scheduling will take "
@@ -620,6 +622,7 @@ def timeout(func, *args, timeout=5, **kwargs):
     # use a queue to share the return value from the file checking thread
     # the target function puts the return value from `func` into shared memory
     message_queue = queue.Queue()
+
     def wrapper_func():
         message_queue.put(func(*args, **kwargs))
 
@@ -630,7 +633,8 @@ def timeout(func, *args, timeout=5, **kwargs):
 
     if thread.is_alive():
         # first arg to `check_csv`, `check_raster`, `check_vector` is the path
-        warnings.warn(f'Validation of file {args[0]} timed out. If this file '
+        warnings.warn(
+            f'Validation of file {args[0]} timed out. If this file '
             'is stored in a file streaming service, it may be taking a long '
             'time to download. Try storing it locally instead.')
         return None
@@ -873,7 +877,7 @@ def invest_validator(validate_func):
         AssertionError when an invalid format is found.
 
     Example::
-    
+
         from natcap.invest import validation
         @validation.invest_validator
         def validate(args, limit_to=None):
@@ -906,13 +910,13 @@ def invest_validator(validate_func):
             model_module = importlib.import_module(validate_func.__module__)
         except:
             LOGGER.warning('Unable to import module %s: assuming no ARGS_SPEC.',
-                            validate_func.__module__)
+                           validate_func.__module__)
             model_module = None
 
         # If the module has an ARGS_SPEC defined, validate against that.
         if hasattr(model_module, 'ARGS_SPEC'):
             LOGGER.debug('Using ARG_SPEC for validation')
-            args_spec = getattr(model_module, 'ARGS_SPEC')['args']
+            args_spec = model_module.ARGS_SPEC['args']
 
             if limit_to is None:
                 LOGGER.info('Starting whole-model validation with ARGS_SPEC')
@@ -942,7 +946,6 @@ def invest_validator(validate_func):
                 if args_value not in ('', None):
                     input_type = args_key_spec['type']
                     validator_func = _VALIDATION_FUNCS[input_type]
-
 
                     try:
                         validation_options = (
