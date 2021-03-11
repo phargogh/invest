@@ -1,5 +1,6 @@
 """Urban Flood Risk Mitigation model."""
 import logging
+import gettext
 import os
 
 from osgeo import gdal
@@ -16,10 +17,11 @@ import shapely.prepared
 from . import validation
 from . import utils
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 ARGS_SPEC = {
-    "model_name": "Urban Flood Risk Mitigation",
+    "model_name": _("Urban Flood Risk Mitigation"),
     "module": __name__,
     "userguide_html": "urban_flood_risk_mitigation.html",
     "args_with_spatial_overlap": {
@@ -35,10 +37,10 @@ ARGS_SPEC = {
         "aoi_watersheds_path": {
             "type": "vector",
             "required": True,
-            "about": (
+            "about": _(
                 "Path to a vector of (sub)watersheds or sewersheds used to "
                 "indicate spatial area of interest."),
-            "name": "Watershed Vector"
+            "name": _("Watershed Vector")
         },
         "rainfall_depth": {
             "validation_options": {
@@ -47,7 +49,7 @@ ARGS_SPEC = {
             "type": "number",
             "required": True,
             "about": "Depth of rainfall in mm.",
-            "name": "Depth of rainfall in mm"
+            "name": _("Depth of rainfall in mm")
         },
         "lulc_path": {
             "type": "raster",
@@ -56,7 +58,7 @@ ARGS_SPEC = {
             },
             "required": True,
             "about": "Path to a landcover raster",
-            "name": "Landcover Raster"
+            "name": _("Landcover Raster")
         },
         "soils_hydrological_group_raster_path": {
             "type": "raster",
@@ -64,11 +66,11 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "Raster with values equal to 1, 2, 3, 4, corresponding to "
                 "soil hydrologic group A, B, C, or D, respectively (used to "
                 "derive the CN number)"),
-            "name": "Soils Hydrological Group Raster"
+            "name": _("Soils Hydrological Group Raster")
         },
         "curve_number_table_path": {
             "validation_options": {
@@ -76,11 +78,11 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "Path to a CSV table that to map landcover codes to curve "
                 "numbers and contains at least the headers 'lucode', "
                 "'CN_A', 'CN_B', 'CN_C', 'CN_D'"),
-            "name": "Biophysical Table"
+            "name": _("Biophysical Table")
         },
         "built_infrastructure_vector_path": {
             "validation_options": {
@@ -88,11 +90,11 @@ ARGS_SPEC = {
             },
             "type": "vector",
             "required": False,
-            "about": (
+            "about": _(
                 "Path to a vector with built infrastructure footprints. "
                 "Attribute table contains a column 'Type' with integers "
                 "(e.g. 1=residential, 2=office, etc.)."),
-            "name": "Built Infrastructure Vector"
+            "name": _("Built Infrastructure Vector")
         },
         "infrastructure_damage_loss_table_path": {
             "validation_options": {
@@ -100,13 +102,13 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": "built_infrastructure_vector_path",
-            "about": (
+            "about": _(
                 "Path to a a CSV table with columns 'Type' and 'Damage' with "
                 "values of built infrastructure type from the 'Type' field "
                 "in the 'Built Infrastructure Vector' and potential damage "
                 "loss (in $/m^2). Required if the built infrastructure vector "
                 "is provided."),
-            "name": "Built Infrastructure Damage Loss Table"
+            "name": _("Built Infrastructure Damage Loss Table")
         }
     }
 }

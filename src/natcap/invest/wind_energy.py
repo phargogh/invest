@@ -1,5 +1,6 @@
 """InVEST Wind Energy model."""
 import logging
+import gettext
 import os
 import pickle
 import shutil
@@ -26,11 +27,12 @@ from . import validation
 from . import utils
 
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 speedups.enable()
 
 ARGS_SPEC = {
-    "model_name": "Wind Energy",
+    "model_name": _("Wind Energy"),
     "module": __name__,
     "userguide_html": "wind_energy.html",
     "args_with_spatial_overlap": {
@@ -46,11 +48,11 @@ ARGS_SPEC = {
             "validation_options": {},
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV file that represents the wind input data (Weibull "
                 "parameters). Please see the User's Guide for a more "
                 "detailed description of the parameters."),
-            "name": "Wind Data Points (CSV)"
+            "name": _("Wind Data Points (CSV)")
         },
         "aoi_vector_path": {
             "validation_options": {
@@ -59,7 +61,7 @@ ARGS_SPEC = {
             },
             "type": "vector",
             "required": "valuation_container & grid_points_path",
-            "about": (
+            "about": _(
                 "A GDAL-supported vector file containing a single polygon "
                 "defining the area of interest.  The AOI must be projected "
                 "with linear units equal to meters.  If the AOI is provided "
@@ -70,24 +72,24 @@ ARGS_SPEC = {
                 "AOI should also cover a portion of the land polygon to "
                 "calculate distances correctly.  An AOI is required for "
                 "valuation."),
-            "name": "Area Of Interest"
+            "name": _("Area Of Interest")
         },
         "bathymetry_path": {
             "validation_options": {},
             "type": "raster",
             "required": True,
-            "about": (
+            "about": _(
                 "A GDAL-supported raster file containing elevation values "
                 "represented in meters for the area of interest.  The DEM "
                 "should cover at least the entire span of the area of "
                 "interest and if no AOI is provided then the default global "
                 "DEM should be used."),
-            "name": "Bathymetric Digital Elevation Model"
+            "name": _("Bathymetric Digital Elevation Model")
         },
         "land_polygon_vector_path": {
             "type": "vector",
             "required": "min_distance | max_distance | valuation_container",
-            "about": (
+            "about": _(
                 "A GDAL-supported polygon vector that represents the land "
                 "and coastline that is of interest.  For this input to be "
                 "selectable the AOI must be selected.  The AOI should also "
@@ -96,25 +98,25 @@ ARGS_SPEC = {
                 "the AOI, form the basis for distance calculations for wind "
                 "farm electrical transmission.  This input is required for "
                 "masking by distance values and for valuation."),
-            "name": "Land Polygon for Distance Calculation"
+            "name": _("Land Polygon for Distance Calculation")
         },
         "global_wind_parameters_path": {
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV file that holds wind energy model parameters for both "
                 "the biophysical and valuation modules. These parameters are "
                 "defaulted to values that are supported and reviewed in the "
                 "User's Guide.  It is recommended that careful consideration "
                 "be taken before changing these values and to make a new CSV "
                 "file so that the default one always remains."),
-            "name": "Global Wind Energy Parameters"
+            "name": _("Global Wind Energy Parameters")
         },
         "turbine_parameters_path": {
             "validation_options": {},
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV file that contains parameters corresponding to a "
                 "specific turbine type.  The InVEST package comes with two "
                 "turbine model options, 3.6 MW and 5.0 MW. A new turbine "
@@ -123,7 +125,7 @@ ARGS_SPEC = {
                 "existing class may be modified according to the user's "
                 "needs.  It is recommended that the existing default CSV "
                 "files are not overwritten."),
-            "name": "Turbine Type Parameters File"
+            "name": _("Turbine Type Parameters File")
         },
         "number_of_turbines": {
             "validation_options": {
@@ -133,12 +135,12 @@ ARGS_SPEC = {
             "required": True,
             "about": "An integer value indicating the number of wind turbines"
                      " per wind farm.",
-            "name": "Number Of Turbines"
+            "name": _("Number Of Turbines")
         },
         "min_depth": {
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "A floating point value in meters for the minimum depth of "
                 "the offshore wind farm installation."),
             "name": (
@@ -147,7 +149,7 @@ ARGS_SPEC = {
         "max_depth": {
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "A floating point value in meters for the maximum depth of "
                 "the offshore wind farm installation."),
             "name": (
@@ -156,7 +158,7 @@ ARGS_SPEC = {
         "min_distance": {
             "type": "number",
             "required": "valuation_container",
-            "about": (
+            "about": _(
                 "A floating point value in meters that represents the "
                 "minimum distance from shore for offshore wind farm "
                 "installation.  Required for valuation."),
@@ -167,7 +169,7 @@ ARGS_SPEC = {
         "max_distance": {
             "type": "number",
             "required": "valuation_container",
-            "about": (
+            "about": _(
                 "A floating point value in meters that represents the "
                 "maximum distance from shore for offshore wind farm "
                 "installation.  Required for valuation."),
@@ -179,30 +181,30 @@ ARGS_SPEC = {
             "type": "boolean",
             "required": False,
             "about": "Indicates whether model includes valuation",
-            "name": "Valuation"
+            "name": _("Valuation")
         },
         "foundation_cost": {
             "type": "number",
             "required": "valuation_container",
-            "about": (
+            "about": _(
                 "A floating point number for the unit cost of the foundation "
                 "type (in millions of dollars). The cost of a foundation "
                 "will depend on the type selected, which itself depends on a "
                 "variety of factors including depth and turbine choice.  "
                 "Please see the User's Guide for guidance on properly "
                 "selecting this value."),
-            "name": "Cost of the Foundation Type (USD, in Millions)"
+            "name": _("Cost of the Foundation Type (USD, in Millions)")
         },
         "discount_rate": {
             "validation_options": {},
             "type": "number",
             "required": "valuation_container",
-            "about": (
+            "about": _(
                 "The discount rate reflects preferences for immediate "
                 "benefits over future benefits (e.g., would an individual "
                 "rather receive $10 today or $10 five years from now?). See "
                 "the User's Guide for guidance on selecting this value."),
-            "name": "Discount Rate"
+            "name": _("Discount Rate")
         },
         "grid_points_path": {
             "validation_options": {
@@ -210,7 +212,7 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": "valuation_container & (not avg_grid_distance)",
-            "about": (
+            "about": _(
                 "An optional CSV file with grid and land points to determine "
                 "cable distances from.  Each point location is represented "
                 "as a single row with columns being <b>ID</b>, <b>TYPE</b>, "
@@ -221,7 +223,7 @@ ARGS_SPEC = {
                 "unique integer.  The shortest distance between respective "
                 "points is used for calculations.  See the User's Guide for "
                 "more information."),
-            "name": "Grid Connection Points"
+            "name": _("Grid Connection Points")
         },
         "avg_grid_distance": {
             "validation_options": {
@@ -229,7 +231,7 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": "valuation_container & (not grid_points_path)",
-            "about": (
+            "about": _(
                 "A number in kilometres that is only used if grid points are "
                 "NOT used in valuation.  When running valuation using the "
                 "land polygon to compute distances, the model uses an "
@@ -237,17 +239,17 @@ ARGS_SPEC = {
                 "landing points instead of specific grid connection points.  "
                 "See the User's Guide for a description of the approach and "
                 "the method used to calculate the default value."),
-            "name": "Average Shore to Grid Distance (Kilometers)"
+            "name": _("Average Shore to Grid Distance (Kilometers)")
         },
         "price_table": {
             "type": "boolean",
             "required": "valuation_container",
-            "about": (
+            "about": _(
                 "When checked the model will use the social cost of wind "
                 "energy table provided in the input below.  If not checked "
                 "the price per year will be determined using the price of "
                 "energy input and the annual rate of change."),
-            "name": "Use Price Table"
+            "name": _("Use Price Table")
         },
         "wind_schedule": {
             "validation_options": {
@@ -255,7 +257,7 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": "valuation_container & price_table",
-            "about": (
+            "about": _(
                 "A CSV file that has the price of wind energy per kilowatt "
                 "hour for each year of the wind farms life. The CSV file "
                 "should have the following two columns:<br/><br/><b>Year:</b> "
@@ -271,18 +273,18 @@ ARGS_SPEC = {
                 "example we have 6 years for the lifetime of the farm, "
                 "year 0 being a construction year and year 5 being the "
                 "last year."),
-            "name": "Wind Energy Price Table"
+            "name": _("Wind Energy Price Table")
         },
         "wind_price": {
             "type": "number",
             "required": "valuation_container & (not price_table)",
-            "about": (
+            "about": _(
                 "The price of energy per kilowatt hour.  This is the price "
                 "that will be used for year or time step 0 and will then be "
                 "adjusted based on the rate of change percentage from the "
                 "input below.  See the User's Guide for guidance about "
                 "determining this value."),
-            "name": "Price of Energy per Kilowatt Hour ($/kWh)"
+            "name": _("Price of Energy per Kilowatt Hour ($/kWh)")
         },
         "rate_change": {
             "validation_options": {
@@ -290,11 +292,11 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": "valuation_container & (not price_table)",
-            "about": (
+            "about": _(
                 "The annual rate of change in the price of wind energy.  "
                 "This should be expressed as a decimal percentage.  For "
                 "example, 0.1 for a 10% annual price change."),
-            "name": "Annual Rate of Change in Price of Wind Energy"
+            "name": _("Annual Rate of Change in Price of Wind Energy")
         }
     }
 }

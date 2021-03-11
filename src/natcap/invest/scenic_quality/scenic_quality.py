@@ -1,5 +1,6 @@
 """InVEST Scenic Quality Model."""
 import os
+import gettext
 import math
 import logging
 import tempfile
@@ -18,6 +19,7 @@ from natcap.invest.scenic_quality.viewshed import viewshed
 from .. import utils
 from .. import validation
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 _VALUATION_NODATA = -99999  # largish negative nodata value.
 _BYTE_NODATA = 255  # Largest value a byte can hold
@@ -45,7 +47,7 @@ _INTERMEDIATE_BASE_FILES = {
 
 
 ARGS_SPEC = {
-    "model_name": "Unobstructed Views: Scenic Quality Provision",
+    "model_name": _("Unobstructed Views: Scenic Quality Provision"),
     "module": __name__,
     "userguide_html": "scenic_quality.html",
     "args_with_spatial_overlap": {
@@ -57,10 +59,10 @@ ARGS_SPEC = {
         "results_suffix": validation.SUFFIX_SPEC,
         "n_workers": validation.N_WORKERS_SPEC,
         "aoi_path": {
-            "name": "Area of Interest",
+            "name": _("Area of Interest"),
             "type": "vector",
             "required": True,
-            "about": (
+            "about": _(
                 "A GDAL-supported vector file.  This AOI instructs "
                 "the model where to clip the input data and the extent "
                 "of analysis.  Users will create a polygon feature "
@@ -68,10 +70,10 @@ ARGS_SPEC = {
                 "must intersect the Digital Elevation Model (DEM)."),
         },
         "structure_path": {
-            "name": "Features Impacted Scenic Quality",
+            "name": _("Features Impacted Scenic Quality"),
             "type": "vector",
             "required": True,
-            "about": (
+            "about": _(
                 "A GDAL-supported vector file.  The user must specify "
                 "a point feature layer that indicates locations of "
                 "objects that contribute to negative scenic quality, "
@@ -81,14 +83,14 @@ ARGS_SPEC = {
                 "consistent with the project of the DEM input."),
         },
         "dem_path": {
-            "name": "Digital Elevation Model",
+            "name": _("Digital Elevation Model"),
             "type": "raster",
             "required": True,
             "validation_options": {
                 "projected": True,
                 "projection_units": "meters",
             },
-            "about": (
+            "about": _(
                 "A GDAL-supported raster file.  An elevation raster "
                 "layer is required to conduct viewshed analysis. "
                 "Elevation data allows the model to determine areas "
@@ -96,13 +98,13 @@ ARGS_SPEC = {
                 "contributing to negative scenic quality are visible."),
         },
         "refraction": {
-            "name": "Refractivity Coefficient",
+            "name": _("Refractivity Coefficient"),
             "type": "number",
             "required": True,
             "validation_options": {
                 "expression": "(value >= 0) & (value <= 1)",
             },
-            "about": (
+            "about": _(
                 "The earth curvature correction option corrects for "
                 "the curvature of the earth and refraction of visible "
                 "light in air.  Changes in air density curve the light "
@@ -116,13 +118,13 @@ ARGS_SPEC = {
                 "coefficient to 0.13."),
         },
         "do_valuation": {
-            "name": "Valuation",
+            "name": _("Valuation"),
             "type": "boolean",
             "required": False,
             "about": "Enable or disable valuation."
         },
         "valuation_function": {
-            "name": "Valuation function",
+            "name": _("Valuation function"),
             "type": "option_string",
             "required": "do_valuation",
             "validation_options": {
@@ -131,31 +133,31 @@ ARGS_SPEC = {
                     'logarithmic: a + b log(x+1)',
                     'exponential: a * e^(-bx)'],
             },
-            "about": (
+            "about": _(
                 "This field indicates the functional form f(x) the "
                 "model will use to value the visual impact for each "
                 "viewpoint."),
         },
         "a_coef": {
-            "name": "'a' Coefficient",
+            "name": _("'a' Coefficient"),
             "type": "number",
             "required": "do_valuation",
-            "about": ("First coefficient used by the valuation function"),
+            "about": _("First coefficient used by the valuation function"),
         },
         "b_coef": {
-            "name": "'a' Coefficient",
+            "name": _("'a' Coefficient"),
             "type": "number",
             "required": "do_valuation",
-            "about": ("Second coefficient used by the valuation function"),
+            "about": _("Second coefficient used by the valuation function"),
         },
         "max_valuation_radius": {
-            "name": "Maximum Valuation Radius",
+            "name": _("Maximum Valuation Radius"),
             "type": "number",
             "required": False,
             "validation_options": {
                 "expression": "value > 0",
             },
-            "about": (
+            "about": _(
                 "Radius beyond which the valuation is set to zero. "
                 "The valuation function 'f' cannot be negative at the "
                 "radius 'r' (f(r)>=0)."),

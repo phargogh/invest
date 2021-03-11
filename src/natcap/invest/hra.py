@@ -1,5 +1,6 @@
 """Habitat risk assessment (HRA) model for InVEST."""
 # -*- coding: UTF-8 -*-
+import gettext
 import os
 import logging
 import pickle
@@ -18,6 +19,7 @@ from . import utils
 from . import validation
 
 
+_ = gettext.gettext
 LOGGER = logging.getLogger('natcap.invest.hra')
 
 # Parameters from the user-provided criteria and info tables
@@ -64,7 +66,7 @@ _DEFAULT_GTIFF_CREATION_OPTIONS = (
     'BLOCKXSIZE=256', 'BLOCKYSIZE=256')
 
 ARGS_SPEC = {
-    "model_name": "Habitat Risk Assessment",
+    "model_name": _("Habitat Risk Assessment"),
     "module": __name__,
     "userguide_html": "habitat_risk_assessment.html",
     "args": {
@@ -72,8 +74,8 @@ ARGS_SPEC = {
         "results_suffix": validation.SUFFIX_SPEC,
         "n_workers": validation.N_WORKERS_SPEC,
         "info_table_path": {
-            "name": "Habitat Stressor Information CSV or Excel File",
-            "about": (
+            "name": _("Habitat Stressor Information CSV or Excel File"),
+            "about": _(
                 "A CSV or Excel file that contains the name of the habitat "
                 "(H) or stressor (s) on the `NAME` column that matches the "
                 "names in `criteria_table_path`. Each H/S has its "
@@ -88,8 +90,8 @@ ARGS_SPEC = {
             }
         },
         "criteria_table_path": {
-            "name": "Criteria Scores Table",
-            "about": (
+            "name": _("Criteria Scores Table"),
+            "about": _(
                 "A CSV or Excel file that contains the set of criteria "
                 "ranking  (rating, DQ and weight) of each stressor on each "
                 "habitat, as well as the habitat resilience attributes."),
@@ -100,8 +102,8 @@ ARGS_SPEC = {
             "required": True,
         },
         "resolution": {
-            "name": "Resolution of Analysis (meters)",
-            "about": (
+            "name": _("Resolution of Analysis (meters)"),
+            "about": _(
                 "The size that should be used to grid the given habitat and "
                 "stressor files into rasters. This value will be the pixel "
                 "size of the completed raster files."),
@@ -112,8 +114,8 @@ ARGS_SPEC = {
             }
         },
         "max_rating": {
-            "name": "Maximum Criteria Score",
-            "about": (
+            "name": _("Maximum Criteria Score"),
+            "about": _(
                 "This is the highest score that is used to rate a criteria "
                 "within this model run. This value would be used to compare "
                 "with the values within Rating column of the Criteria Scores "
@@ -125,8 +127,8 @@ ARGS_SPEC = {
             }
         },
         "risk_eq": {
-            "name": "Risk Equation",
-            "about": (
+            "name": _("Risk Equation"),
+            "about": _(
                 "Each of these represents an option of a risk calculation "
                 "equation. This will determine the numeric output of risk "
                 "for every habitat and stressor overlap area."),
@@ -137,8 +139,8 @@ ARGS_SPEC = {
             }
         },
         "decay_eq": {
-            "name": "Decay Equation",
-            "about": (
+            "name": _("Decay Equation"),
+            "about": _(
                 "Each of these represents an option of a decay equation "
                 "for the buffered stressors. If stressor buffering is "
                 "desired, this equation will determine the rate at which "
@@ -150,8 +152,8 @@ ARGS_SPEC = {
             }
         },
         "aoi_vector_path": {
-            "name": "Area of Interest",
-            "about": (
+            "name": _("Area of Interest"),
+            "about": _(
                 "A GDAL-supported vector file containing feature containing "
                 "one or more planning regions. subregions. An optional field "
                 "called `name` could be added to compute average risk values "
@@ -164,7 +166,7 @@ ARGS_SPEC = {
             }
         },
         "visualize_outputs": {
-            "name": "Generate GeoJSONs for Web Visualization",
+            "name": _("Generate GeoJSONs for Web Visualization"),
             "help": (
                 "Check to enable the generation of GeoJSON outputs. This "
                 "could be used to visualize the risk scores on a map in the "
@@ -2394,7 +2396,7 @@ def _label_linear_unit(row):
             to transform them to meters
 
     Raises:
-        ValueError if any of the file's spatial reference is missing or if 
+        ValueError if any of the file's spatial reference is missing or if
             any of the file's are not linearly projected.
 
     """
@@ -2460,7 +2462,7 @@ def _get_info_dataframe(base_info_table_path, file_preprocessing_dir,
     file_ext = os.path.splitext(base_info_table_path)[1].lower()
     if file_ext == '.csv':
         # use sep=None, engine='python' to infer what the separator is
-        info_df = pandas.read_csv(base_info_table_path, sep=None, 
+        info_df = pandas.read_csv(base_info_table_path, sep=None,
             engine='python')
     elif file_ext in ['.xlsx', '.xls']:
         info_df = pandas.read_excel(base_info_table_path)
@@ -2584,10 +2586,10 @@ def _get_criteria_dataframe(base_criteria_table_path):
     file_ext = os.path.splitext(base_criteria_table_path)[1].lower()
     if file_ext == '.csv':
         # use sep=None, engine='python' to infer what the separator is
-        criteria_df = pandas.read_csv(base_criteria_table_path, 
+        criteria_df = pandas.read_csv(base_criteria_table_path,
             index_col=0, header=None, sep=None, engine='python')
     elif file_ext in ['.xlsx', '.xls']:
-        criteria_df = pandas.read_excel(base_criteria_table_path, 
+        criteria_df = pandas.read_excel(base_criteria_table_path,
             index_col=0, header=None)
     else:
         raise ValueError('Criteria table %s is not a CSV or an Excel file.' %

@@ -1,5 +1,6 @@
 """Fisheries."""
 import logging
+import gettext
 import csv
 import os
 
@@ -10,11 +11,12 @@ from . import fisheries_model as model
 from .. import utils
 from .. import validation
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 LABEL = 'Fisheries'
 
 ARGS_SPEC = {
-    "model_name": "Fisheries",
+    "model_name": _("Fisheries"),
     "module": __name__,
     "userguide_html": "fisheries.html",
     "args": {
@@ -26,14 +28,14 @@ ARGS_SPEC = {
             },
             "type": "vector",
             "required": False,
-            "about": (
+            "about": _(
                 "A GDAL-supported vector file used to display outputs within "
                 "the region(s) of interest. The layer should contain "
                 "one feature for every region of interest, each feature of "
                 "which should have a 'NAME' attribute.  The 'NAME' "
                 "attribute can be numeric or alphabetic, but must be unique "
                 "within the given file."),
-            "name": "Area of Interest"
+            "name": _("Area of Interest")
         },
         "total_timesteps": {
             "validation_options": {
@@ -41,10 +43,10 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "The number of time steps the simulation shall execute "
                 "before completion. Must be a positive integer."),
-            "name": "Number of Time Steps for Model Run"
+            "name": _("Number of Time Steps for Model Run")
         },
         "population_type": {
             "validation_options": {
@@ -52,7 +54,7 @@ ARGS_SPEC = {
             },
             "type": "option_string",
             "required": True,
-            "about": (
+            "about": _(
                 "Specifies whether the lifecycle classes provided in the "
                 "Population Parameters CSV file represent ages (uniform "
                 "duration) or stages. Age-based models (e.g. "
@@ -65,7 +67,7 @@ ARGS_SPEC = {
                 "CSV file must include a 'Duration' vector "
                 "alongside the survival matrix that contains the number of "
                 "time steps that each stage lasts."),
-            "name": "Population Model Type"
+            "name": _("Population Model Type")
         },
         "sexsp": {
             "validation_options": {
@@ -73,11 +75,11 @@ ARGS_SPEC = {
             },
             "type": "option_string",
             "required": True,
-            "about": (
+            "about": _(
                 "Specifies whether or not the lifecycle classes provided in "
                 "the Population Parameters CSV file are distinguished by "
                 "sex."),
-            "name": "Population Classes are Sex-Specific"
+            "name": _("Population Classes are Sex-Specific")
         },
         "harvest_units": {
             "validation_options": {
@@ -85,38 +87,38 @@ ARGS_SPEC = {
             },
             "type": "option_string",
             "required": True,
-            "about": (
+            "about": _(
                 "Specifies whether the harvest output values are calculated "
                 "in terms of number of individuals or in terms of biomass "
                 "(weight). If 'Weight' is selected, the Population "
                 "Parameters CSV file must include a 'Weight' vector "
                 "alongside the survival matrix that contains the weight of "
                 "each lifecycle class and sex if model is sex-specific."),
-            "name": "Harvest by Individuals or Weight"
+            "name": _("Harvest by Individuals or Weight")
         },
         "do_batch": {
             "type": "boolean",
             "required": False,
-            "about": (
+            "about": _(
                 "Specifies whether program will perform a single model run "
                 "or a batch (set) of model runs. For single model "
                 "runs, users submit a filepath pointing to a single "
                 "Population Parameters CSV file.  For batch model runs, "
                 "users submit a directory path pointing to a set of "
                 "Population Parameters CSV files."),
-            "name": "Batch Processing"
+            "name": _("Batch Processing")
         },
         "population_csv_path": {
             "type": "csv",
             "required": "not do_batch",
-            "about": (
+            "about": _(
                 "The provided CSV file should contain all necessary "
                 "attributes for the sub-populations based on lifecycle "
                 "class, sex, and area - excluding possible migration "
                 "information. Please consult the documentation to learn "
                 "more about what content should be provided and how the "
                 "CSV file should be structured."),
-            "name": "Population Parameters File"
+            "name": _("Population Parameters File")
         },
         "population_csv_dir": {
             "type": "directory",
@@ -124,7 +126,7 @@ ARGS_SPEC = {
             "validation_options": {
                 "exists": True,
             },
-            "about": (
+            "about": _(
                 "The provided CSV folder should contain a set of Population "
                 "Parameters CSV files with all necessary attributes for "
                 "sub-populations based on lifecycle class, sex, and area - "
@@ -133,7 +135,7 @@ ARGS_SPEC = {
                 "created by the model run. Please consult the "
                 "documentation to learn more about what content should be "
                 "provided and how the CSV file should be structured."),
-            "name": "Population Parameters CSV Folder"
+            "name": _("Population Parameters CSV Folder")
         },
         "spawn_units": {
             "validation_options": {
@@ -141,7 +143,7 @@ ARGS_SPEC = {
             },
             "type": "option_string",
             "required": True,
-            "about": (
+            "about": _(
                 "Specifies whether the spawner abundance used in the "
                 "recruitment function should be calculated in terms of "
                 "number of individuals or in terms of biomass (weight). "
@@ -151,7 +153,7 @@ ARGS_SPEC = {
                 "provided by the user should correspond to the selected "
                 "choice. Used only for the Beverton-Holt and Ricker "
                 "recruitment functions."),
-            "name": "Spawners by Individuals or Weight (Beverton-Holt / Ricker)"
+            "name": _("Spawners by Individuals or Weight (Beverton-Holt / Ricker)")
         },
         "total_init_recruits": {
             "validation_options": {
@@ -159,13 +161,13 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "The initial number of recruits in the population model at "
                 "time equal to zero.<br><br>If the model contains multiple "
                 "regions of interest or is distinguished by sex, this value "
                 "will be evenly divided and distributed into each "
                 "sub-population."),
-            "name": "Total Initial Recruits"
+            "name": _("Total Initial Recruits")
         },
         "recruitment_type": {
             "validation_options": {
@@ -173,7 +175,7 @@ ARGS_SPEC = {
             },
             "type": "option_string",
             "required": True,
-            "about": (
+            "about": _(
                 "The selected equation is used to calculate recruitment into "
                 "the subregions at the beginning of each time step.  "
                 "Corresponding parameters must be specified with each "
@@ -187,40 +189,40 @@ ARGS_SPEC = {
                 "represents a single total recruitment value to be "
                 "distributed into the population model at the beginning of "
                 "each time step."),
-            "name": "Recruitment Function Type"
+            "name": _("Recruitment Function Type")
         },
         "alpha": {
             "type": "number",
             "required": False,
-            "about": (
+            "about": _(
                 "Specifies the shape of the stock-recruit curve. Used only "
                 "for the Beverton-Holt and Ricker recruitment functions. "
                 "Used only for the Beverton-Holt and Ricker recruitment "
                 "functions."),
-            "name": "Alpha (Beverton-Holt / Ricker)"
+            "name": _("Alpha (Beverton-Holt / Ricker)")
         },
         "beta": {
             "type": "number",
             "required": False,
-            "about": (
+            "about": _(
                 "Specifies the shape of the stock-recruit curve. Used only "
                 "for the Beverton-Holt and Ricker recruitment functions."),
-            "name": "Beta (Beverton-Holt / Ricker)"
+            "name": _("Beta (Beverton-Holt / Ricker)")
         },
         "total_recur_recruits": {
             "type": "number",
             "required": False,
-            "about": (
+            "about": _(
                 "Specifies the total number of recruits that come into the "
                 "population at each time step (a fixed number). Used only "
                 "for the Fixed recruitment function."),
-            "name": "Total Recruits per Time Step (Fixed)"
+            "name": _("Total Recruits per Time Step (Fixed)")
         },
         "migr_cont": {
             "type": "boolean",
             "required": True,
             "about": "if True, model uses migration.",
-            "name": "Migration Parameters"
+            "name": _("Migration Parameters")
         },
         "migration_dir": {
             "validation_options": {
@@ -228,7 +230,7 @@ ARGS_SPEC = {
             },
             "type": "directory",
             "required": "migr_cont",
-            "about": (
+            "about": _(
                 "The selected folder contain CSV migration matrices to be "
                 "used in the simulation.  Each CSV file contains a single "
                 "migration matrix corresponding to an lifecycle class that "
@@ -242,32 +244,32 @@ ARGS_SPEC = {
                 "should contain a decimal fraction indicating the percentage "
                 "of the population that will move from one area to another. "
                 "Each column should sum to one."),
-            "name": "Migration Matrix CSV Folder (Optional)"
+            "name": _("Migration Matrix CSV Folder (Optional)")
         },
         "val_cont": {
             "type": "boolean",
             "required": True,
             "about": "if True, model computes valuation.",
-            "name": "Valuation Parameters"
+            "name": _("Valuation Parameters")
         },
         "frac_post_process": {
             "validation_options": {},
             "type": "number",
             "required": "val_cont",
-            "about": (
+            "about": _(
                 "Decimal fraction indicating the percentage of harvested "
                 "catch remaining after post-harvest processing is complete."),
-            "name": "Fraction of Harvest Kept After Processing"
+            "name": _("Fraction of Harvest Kept After Processing")
         },
         "unit_price": {
             "type": "number",
             "required": "val_cont",
-            "about": (
+            "about": _(
                 "Specifies the price per harvest unit. If 'Harvest by "
                 "Individuals or Weight' was set to 'Individuals', this should "
                 "be the price per individual. If set to 'Weight', this "
                 "should be the price per unit weight."),
-            "name": "Unit Price"
+            "name": _("Unit Price")
         }
     }
 }

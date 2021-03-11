@@ -1,5 +1,6 @@
 """InVEST Recreation Client."""
 import json
+import gettext
 import os
 import zipfile
 import time
@@ -34,6 +35,7 @@ if shapely.speedups.available:
 from .. import utils
 from .. import validation
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 # This URL is a NatCap global constant
@@ -44,7 +46,7 @@ Pyro4.config.SERIALIZER = 'marshal'
 
 
 ARGS_SPEC = {
-    "model_name": "Recreation Model",
+    "model_name": _("Recreation Model"),
     "module": __name__,
     "userguide_html": "recreation.html",
     "args": {
@@ -54,15 +56,15 @@ ARGS_SPEC = {
         "aoi_path": {
             "type": "vector",
             "required": True,
-            "about": (
+            "about": _(
                 "A GDAL-supported vector file representing the area of "
                 "interest where the model will run the analysis."),
-            "name": "Area of Interest (Vector)"
+            "name": _("Area of Interest (Vector)")
         },
         "hostname": {
             "type": "freestyle_string",
             "required": False,
-            "about": (
+            "about": _(
                 "FQDN to a recreation server.  If not provided, a default "
                 "is assumed."),
         },
@@ -72,7 +74,7 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": False,
-            "about": (
+            "about": _(
                 "the port on ``hostname`` to use for contacting the "
                 "recreation server."),
         },
@@ -82,10 +84,10 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "Year to start PUD calculations, date starts on Jan "
                 "1st."),
-            "name": "Start Year (inclusive, must be >= 2005)"
+            "name": _("Start Year (inclusive, must be >= 2005)")
         },
         "end_year": {
             "validation_options": {
@@ -93,19 +95,19 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "Year to end PUD calculations, date ends and includes Dec "
                 "31st."),
-            "name": "End Year (inclusive, must be <= 2017)"
+            "name": _("End Year (inclusive, must be <= 2017)")
         },
         "grid_aoi": {
             "type": "boolean",
             "required": False,
-            "about": (
+            "about": _(
                 "If true the polygon vector in ``args['aoi_path']`` should be "
                 "gridded into a new vector and the recreation model should "
                 "be executed on that"),
-            "name": "Grid the AOI"
+            "name": _("Grid the AOI")
         },
         "grid_type": {
             "validation_options": {
@@ -116,11 +118,11 @@ ARGS_SPEC = {
             },
             "type": "option_string",
             "required": "grid_aoi",
-            "about": (
+            "about": _(
                 "Optional, but must exist if args['grid_aoi'] is True.  Is "
                 "one of 'hexagon' or 'square' and\nindicates the style of "
                 "gridding."),
-            "name": "Grid Type"
+            "name": _("Grid Type")
         },
         "cell_size": {
             "validation_options": {
@@ -128,19 +130,19 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": "grid_aoi",
-            "about": (
+            "about": _(
                 "The size of the grid units measured in the projection "
                 "units of the AOI. For example, UTM projections use "
                 "meters."),
-            "name": "Cell Size"
+            "name": _("Cell Size")
         },
         "compute_regression": {
             "type": "boolean",
             "required": False,
-            "about": (
+            "about": _(
                 "If True, then process the predictor table and scenario "
                 "table (if present)."),
-            "name": "Compute Regression"
+            "name": _("Compute Regression")
         },
         "predictor_table_path": {
             "validation_options": {
@@ -148,11 +150,11 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": "compute_regression",
-            "about": (
+            "about": _(
                 "A table that maps predictor IDs to files and their types "
                 "with required headers of 'id', 'path', and 'type'.  The "
                 "file paths can be absolute, or relative to the table."),
-            "name": "Predictor Table"
+            "name": _("Predictor Table")
         },
         "scenario_predictor_table_path": {
             "validation_options": {
@@ -160,11 +162,11 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": False,
-            "about": (
+            "about": _(
                 "A table that maps predictor IDs to files and their types "
                 "with required headers of 'id', 'path', and 'type'.  The "
                 "file paths can be absolute, or relative to the table."),
-            "name": "Scenario Predictor Table"
+            "name": _("Scenario Predictor Table")
         }
     }
 }
@@ -177,6 +179,7 @@ ARGS_SPEC = {
 _ESRI_SHAPEFILE_EXTENSIONS = ['.prj', '.shp', '.shx', '.dbf', '.sbn', '.sbx']
 
 # Have 5.0 seconds between timed progress outputs
+_ = gettext.gettext
 LOGGER_TIME_DELAY = 5.0
 
 # For now, this is the field name we use to mark the photo user "days"

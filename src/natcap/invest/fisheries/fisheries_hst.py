@@ -1,5 +1,6 @@
 """
 The Fisheries Habitat Scenario Tool module contains the high-level code for
+import gettext
 generating a new Population Parameters CSV File based on habitat area
 change and the dependencies that particular classes of the given species
 have on particular habitats.
@@ -12,32 +13,33 @@ import numpy as np
 from . import fisheries_hst_io as io
 from .. import validation
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 ARGS_SPEC = {
-    "model_name": "Fisheries Habitat Scenario Tool",
+    "model_name": _("Fisheries Habitat Scenario Tool"),
     "module": __name__,
     "userguide_html": "fisheries.html",
     "args": {
         "workspace_dir": validation.WORKSPACE_SPEC,
         "results_suffix": validation.SUFFIX_SPEC,
         "sexsp": {
-            "name": "Population Classes are Sex-Specific",
+            "name": _("Population Classes are Sex-Specific"),
             "type": "option_string",
             "required": True,
             "validation_options": {
                 "options": ["No", "Yes"],
             },
-            "about": (
+            "about": _(
                 "Specifies whether or not the population classes "
                 "provided in the Population Parameters CSV file are "
                 "distinguished by sex."),
         },
         "population_csv_path": {
-            "name": "Population Parameters File",
+            "name": _("Population Parameters File"),
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV file containing all necessary attributes for "
                 "population classes based on age/stage, sex, and area "
                 "- excluding possible migration "
@@ -47,10 +49,10 @@ ARGS_SPEC = {
                 "file."),
         },
         "habitat_dep_csv_path": {
-            "name": "Habitat Dependency Parameters File",
+            "name": _("Habitat Dependency Parameters File"),
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV file containing the habitat dependencies (0-1) "
                 "for each life stage or age and for each habitat type "
                 "included in the Habitat Change CSV File.<br><br>See "
@@ -59,10 +61,10 @@ ARGS_SPEC = {
                 "documentation for help on how to format this file."),
         },
         "habitat_chg_csv_path": {
-            "name": "Habitat Area Change File",
+            "name": _("Habitat Area Change File"),
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV file containing the percent changes in habitat "
                 "area by subregion (if applicable). The habitats "
                 "included should be those which the population depends "
@@ -72,13 +74,13 @@ ARGS_SPEC = {
                 "to format this file."),
         },
         "gamma": {
-            "name": "Gamma",
+            "name": _("Gamma"),
             "type": "number",
             "required": True,
             "validation_options": {
                 "expression": "(value >= 0) & (value <= 1)",
             },
-            "about": (
+            "about": _(
                 "Gamma describes the relationship between a change in "
                 "habitat area and a change in survival of life stages "
                 "dependent on that habitat.  Specify a value between 0 "
@@ -216,7 +218,7 @@ def convert_survival_matrix(vars_dict):
     # Divide by number of habitats and cancel non-class-transition elements
     # numpy.where may do the math on all elements regardless of the condition
     # replace 0s with -1s so that we don't divide by zero
-    n_a[n_a == 0] = -1  
+    n_a[n_a == 0] = -1
     H_xa_weighted = np.where(n_a < 0, 0, (H_xa * t_a) / n_a)
 
     # Add unchanged elements back in to matrix

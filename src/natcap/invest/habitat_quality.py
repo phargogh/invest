@@ -1,5 +1,6 @@
 # coding=UTF-8
 """InVEST Habitat Quality model."""
+import gettext
 import collections
 import os
 import logging
@@ -13,10 +14,11 @@ import taskgraph
 from . import utils
 from . import validation
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 ARGS_SPEC = {
-    "model_name": "Habitat Quality",
+    "model_name": _("Habitat Quality"),
     "module": __name__,
     "userguide_html": "habitat_quality.html",
     "args_with_spatial_overlap": {
@@ -34,7 +36,7 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "A GDAL-supported raster file.  The current LULC must have "
                 "its' own threat rasters, where each threat raster file path "
                 "is defined in the <b>Threats Data</b> CSV.<br/><br/> "
@@ -42,7 +44,7 @@ ARGS_SPEC = {
                 "The dataset should be in a projection where the units are "
                 "in meters and the projection used should be defined.  The "
                 "LULC codes must match the codes in the Sensitivity table."),
-            "name": "Current Land Cover"
+            "name": _("Current Land Cover")
         },
         "lulc_fut_path": {
             "type": "raster",
@@ -50,7 +52,7 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "Optional.  A GDAL-supported raster file.  Inputting a "
                 "future LULC will generate degradation, habitat quality, and "
                 "habitat rarity (If baseline is input) outputs.  The future "
@@ -61,7 +63,7 @@ ARGS_SPEC = {
                 "units are in meters and the projection used should be "
                 "defined. The LULC codes must match the codes in the "
                 "Sensitivity table."),
-            "name": "Future Land Cover"
+            "name": _("Future Land Cover")
         },
         "lulc_bas_path": {
             "type": "raster",
@@ -69,7 +71,7 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "Optional.  A GDAL-supported raster file.  If the baseline "
                 "LULC is provided, rarity outputs will be created for the "
                 "current and future LULC. The baseline LULC can have it's "
@@ -85,7 +87,7 @@ ARGS_SPEC = {
                 "codes must match the codes in the Sensitivity table.  If "
                 "possible the baseline map should refer to a time when "
                 "intensive management of the landscape was relatively rare."),
-            "name": "Baseline Land Cover"
+            "name": _("Baseline Land Cover")
         },
         "threats_table_path": {
             "validation_options": {
@@ -94,7 +96,7 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV file of all the threats for the model to consider. "
                 "Each row in the table is a degradation source. The columns "
                 "(THREAT, MAX_DIST, WEIGHT, DECAY) are different attributes "
@@ -128,7 +130,7 @@ ARGS_SPEC = {
                 "filepath is relative to the THREAT CSV input. Entries can "
                 "be left empty if looking at current scenario only."
                 ),
-            "name": "Threats Data"
+            "name": _("Threats Data")
         },
         "access_vector_path": {
             "validation_options": {
@@ -137,7 +139,7 @@ ARGS_SPEC = {
             },
             "type": "vector",
             "required": False,
-            "about": (
+            "about": _(
                 "A GDAL-supported vector file.  The input contains data on "
                 "the relative protection that legal / institutional / social "
                 "/ physical barriers provide against threats.  The vector "
@@ -145,7 +147,7 @@ ARGS_SPEC = {
                 "The ACCESS values should range from 0 - 1, where 1 "
                 "is fully accessible.  Any cells not covered by a polygon "
                 "will be set to 1."),
-            "name": "Accessibility to Threats (Vector) (Optional)"
+            "name": _("Accessibility to Threats (Vector) (Optional)")
         },
         "sensitivity_table_path": {
             "validation_options": {
@@ -153,7 +155,7 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV file of LULC types, whether or not they are considered "
                 "habitat, and, for LULC types that are habitat, their "
                 "specific sensitivity to each threat. Each row is a LULC "
@@ -171,7 +173,7 @@ ARGS_SPEC = {
                 "the sensitivity of a habitat to a threat."
                 "Please see the users guide for more detailed information on "
                 "proper column values and column names for each threat."),
-            "name": "Sensitivity of Land Cover Types to Each Threat"
+            "name": _("Sensitivity of Land Cover Types to Each Threat")
         },
         "half_saturation_constant": {
             "validation_options": {
@@ -179,7 +181,7 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "A positive floating point value that is defaulted at 0.05. "
                 "This is the value of the parameter k in equation (4). In "
                 "general, set k to half of the highest grid cell degradation "
@@ -189,7 +191,7 @@ ARGS_SPEC = {
                 "Note that the choice of k only determines the spread and "
                 "central tendency of habitat quality cores and does not "
                 "affect the rank."),
-            "name": "Half-Saturation Constant"
+            "name": _("Half-Saturation Constant")
         },
     }
 }

@@ -1,5 +1,6 @@
 """GLOBIO InVEST Model."""
 import os
+import gettext
 import logging
 import collections
 import tempfile
@@ -15,6 +16,7 @@ from . import utils
 from . import validation
 
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 # this value of sigma == 9.0 was derived by Justin Johnson as a good
@@ -23,7 +25,7 @@ LOGGER = logging.getLogger(__name__)
 SIGMA = 9.0
 
 ARGS_SPEC = {
-    "model_name": "GLOBIO",
+    "model_name": _("GLOBIO"),
     "module": __name__,
     "userguide_html": "../documentation/globio.html",
     "args_with_spatial_overlap": {
@@ -39,7 +41,7 @@ ARGS_SPEC = {
             "type": "boolean",
             "required": False,
             "about": 'if True then "mode (b)" else "mode (a)"',
-            "name": "Predefined land use map for GLOBIO"
+            "name": _("Predefined land use map for GLOBIO")
         },
         "lulc_path": {
             "type": "raster",
@@ -47,10 +49,10 @@ ARGS_SPEC = {
                 "projected": True,
             },
             "required": "not predefined_globio",
-            "about": (
+            "about": _(
                 'used in "mode (a)" path to a base landcover map with'
                 ' integer codes'),
-            "name": "Land Use/Cover (Raster)"
+            "name": _("Land Use/Cover (Raster)")
         },
         "lulc_to_globio_table_path": {
             "validation_options": {
@@ -58,13 +60,13 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": "not predefined_globio",
-            "about": (
+            "about": _(
                 "A CSV table containing model information corresponding to "
                 "each of the land use classes in the LULC raster input.  It "
                 "must contain the fields 'lucode', 'globio_lucode'.  "
                 "See the InVEST User's Guide for more information "
                 "about these fields."),
-            "name": "Landcover to GLOBIO Landcover Table"
+            "name": _("Landcover to GLOBIO Landcover Table")
         },
         "infrastructure_dir": {
             "validation_options": {
@@ -72,12 +74,12 @@ ARGS_SPEC = {
             },
             "type": "directory",
             "required": True,
-            "about": (
+            "about": _(
                 'Used in "mode (a) and (b)" a path to a folder containing '
                 'maps of either GDAL compatible rasters or vectors. '
                 'These data will be used in the infrastructure '
                 'to calculation of MSA.'),
-            "name": "Infrastructure Directory"
+            "name": _("Infrastructure Directory")
         },
         "pasture_path": {
             "type": "raster",
@@ -86,7 +88,7 @@ ARGS_SPEC = {
             },
             "required": "not predefined_globio",
             "about": 'used in "mode (a)" path to pasture raster',
-            "name": "Pasture (Raster)"
+            "name": _("Pasture (Raster)")
         },
         "potential_vegetation_path": {
             "type": "raster",
@@ -94,9 +96,9 @@ ARGS_SPEC = {
                 "projected": True,
             },
             "required": "not predefined_globio",
-            "about": (
+            "about": _(
                 'used in "mode (a)" path to potential vegetation raster'),
-            "name": "Potential Vegetation (Raster)"
+            "name": _("Potential Vegetation (Raster)")
         },
         "pasture_threshold": {
             "validation_options": {
@@ -105,7 +107,7 @@ ARGS_SPEC = {
             "type": "number",
             "required": "not predefined_globio",
             "about": 'used in "mode (a)"',
-            "name": "Pasture Threshold"
+            "name": _("Pasture Threshold")
         },
         "intensification_fraction": {
             "validation_options": {
@@ -113,10 +115,10 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "A value between 0 and 1 denoting proportion of total "
                 "agriculture that should be classified as 'high input'."),
-            "name": "Proportion of of Agriculture Intensified"
+            "name": _("Proportion of of Agriculture Intensified")
         },
         "primary_threshold": {
             "validation_options": {
@@ -125,7 +127,7 @@ ARGS_SPEC = {
             "type": "number",
             "required": "not predefined_globio",
             "about": 'used in "mode (a)"',
-            "name": "Primary Threshold"
+            "name": _("Primary Threshold")
         },
         "msa_parameters_path": {
             "validation_options": {
@@ -134,11 +136,11 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV table containing MSA threshold values as defined in "
                 "the user's guide.  Provided for advanced users that may "
                 "wish to change those values."),
-            "name": "MSA Parameter Table"
+            "name": _("MSA Parameter Table")
         },
         "aoi_path": {
             "type": "vector",
@@ -146,10 +148,10 @@ ARGS_SPEC = {
                 "projected": True,
             },
             "required": False,
-            "about": (
+            "about": _(
                 "This is a set of polygons that can be used to aggregate MSA "
                 "sum and mean to a polygon."),
-            "name": "AOI",
+            "name": _("AOI"),
         },
         "globio_lulc_path": {
             "validation_options": {
@@ -158,7 +160,7 @@ ARGS_SPEC = {
             "type": "raster",
             "required": "predefined_globio",
             "about": 'used in "mode (b)" path to predefined globio raster.',
-            "name": "GLOBIO Classified Land Use"
+            "name": _("GLOBIO Classified Land Use")
         }
     }
 }
@@ -735,7 +737,7 @@ def load_msa_parameter_table(
                 valueb: ...
                 '<': (bound, msa_lu_value),
                 '>': (bound, msa_lu_value)
-                12: (msa_lu_8 * (1.0 - intensification_fraction) + 
+                12: (msa_lu_8 * (1.0 - intensification_fraction) +
                 msa_lu_9 * intensification_fraction}}
 
     """

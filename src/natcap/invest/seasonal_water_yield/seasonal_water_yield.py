@@ -1,5 +1,6 @@
 """InVEST Seasonal Water Yield Model."""
 import os
+import gettext
 import logging
 import re
 import fractions
@@ -20,6 +21,7 @@ from . import seasonal_water_yield_core
 
 gdal.SetCacheMax(2**26)
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 TARGET_NODATA = -1
@@ -29,7 +31,7 @@ MONTH_ID_TO_LABEL = [
     'nov', 'dec']
 
 ARGS_SPEC = {
-    "model_name": "Seasonal Water Yield",
+    "model_name": _("Seasonal Water Yield"),
     "module": __name__,
     "userguide_html": "seasonal_water_yield.html",
     "args_with_spatial_overlap": {
@@ -48,12 +50,12 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "The number of upstream cells that must flow into a cell "
                 "before it's considered part of a stream such that retention "
                 "stops and the remaining export is exported to the stream.  "
                 "Used to define streams from the DEM."),
-            "name": "Threshold Flow Accumulation"
+            "name": _("Threshold Flow Accumulation")
         },
         "et0_dir": {
             "validation_options": {
@@ -61,10 +63,10 @@ ARGS_SPEC = {
             },
             "type": "directory",
             "required": "not user_defined_local_recharge",
-            "about": (
+            "about": _(
                 "The selected folder has a list of ET0 files with a "
                 "specified format."),
-            "name": "ET0 Directory"
+            "name": _("ET0 Directory")
         },
         "precip_dir": {
             "validation_options": {
@@ -72,10 +74,10 @@ ARGS_SPEC = {
             },
             "type": "directory",
             "required": "not user_defined_local_recharge",
-            "about": (
+            "about": _(
                 "The selected folder has a list of monthly precipitation "
                 "files with a specified format."),
-            "name": "Precipitation Directory"
+            "name": _("Precipitation Directory")
         },
         "dem_raster_path": {
             "type": "raster",
@@ -83,14 +85,14 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "A GDAL-supported raster file with an elevation value for "
                 "each cell.  Make sure the DEM is corrected by filling in "
                 "sinks, and if necessary burning hydrographic features into "
                 "the elevation model (recommended when unusual streams are "
                 "observed.) See the 'Working with the DEM' section of the "
                 "InVEST User's Guide for more information."),
-            "name": "Digital Elevation Model"
+            "name": _("Digital Elevation Model")
         },
         "lulc_raster_path": {
             "type": "raster",
@@ -98,10 +100,10 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "A GDAL-supported raster file, with an integer LULC code "
                 "for each cell."),
-            "name": "Land-Use/Land-Cover"
+            "name": _("Land-Use/Land-Cover")
         },
         "soil_group_path": {
             "type": "raster",
@@ -109,11 +111,11 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "Map of SCS soil groups (A, B, C, or D) mapped to integer "
                 "values (1, 2, 3, or 4) used in combination of the LULC map "
                 "to compute the CN map."),
-            "name": "Soil Group"
+            "name": _("Soil Group")
         },
         "aoi_path": {
             "type": "vector",
@@ -121,11 +123,11 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "Path to a vector that indicates the area over which the "
                 "model should be run, as well as the area in which to "
                 "aggregate over when calculating the output Qb."),
-            "name": "AOI/Watershed"
+            "name": _("AOI/Watershed")
         },
         "biophysical_table_path": {
             "validation_options": {
@@ -134,12 +136,12 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV table containing model information corresponding to "
                 "each of the land use classes in the LULC raster input.  It "
                 "must contain the fields 'lucode', and one 'Kc_<int>' column "
                 "per season."),
-            "name": "Biophysical Table"
+            "name": _("Biophysical Table")
         },
         "rain_events_table_path": {
             "validation_options": {
@@ -148,46 +150,46 @@ ARGS_SPEC = {
             "type": "csv",
             "required": (
                 "(not user_defined_local_recharge) & (not user_defined_climate_zones)"),
-            "about": (
+            "about": _(
                 "Not required if args['user_defined_local_recharge'] is True "
                 "or args['user_defined_climate_zones'] is True.  Path to a "
                 "CSV table that has headers 'month' (1-12) and 'events' "
                 "(int >= 0) that indicates the number of rain events per "
                 "month"),
-            "name": "Rain Events Table"
+            "name": _("Rain Events Table")
         },
         "alpha_m": {
             "type": "freestyle_string",
             "required": "not monthly_alpha",
-            "about": (
+            "about": _(
                 "Required if args['monthly_alpha'] is false.  Is the "
                 "proportion of upslope annual available local recharge that "
                 "is available in month m."),
-            "name": "alpha_m Parameter"
+            "name": _("alpha_m Parameter")
         },
         "beta_i": {
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "Is the fraction of the upgradient subsidy that is "
                 "available for downgradient evapotranspiration."),
-            "name": "beta_i Parameter"
+            "name": _("beta_i Parameter")
         },
         "gamma": {
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "The fraction of pixel local recharge that is available to "
                 "downgradient pixels."),
-            "name": "gamma Parameter"
+            "name": _("gamma Parameter")
         },
         "user_defined_local_recharge": {
             "type": "boolean",
             "required": True,
-            "about": (
+            "about": _(
                 "If True, indicates user will provide pre-defined local "
                 "recharge raster layer"),
-            "name": "User Defined Recharge Layer (Advanced)"
+            "name": _("User Defined Recharge Layer (Advanced)")
         },
         "l_path": {
             "type": "raster",
@@ -195,20 +197,20 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "A path to a GDAL-compatible raster.  Pixels indicate the "
                 "amount of local recharge in mm.  Required if "
                 "args['user_defined_local_recharge'] is True."),
-            "name": "Local Recharge ("
+            "name": _("Local Recharge (")
         },
         "user_defined_climate_zones": {
             "type": "boolean",
             "required": True,
-            "about": (
+            "about": _(
                 "If True, user provides a climate zone rain events table and "
                 "a climate zone raster map in lieu of a global rain events "
                 "table."),
-            "name": "Climate Zones (Advanced)"
+            "name": _("Climate Zones (Advanced)")
         },
         "climate_zone_table_path": {
             "validation_options": {
@@ -216,11 +218,11 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": "user_defined_climate_zones",
-            "about": (
+            "about": _(
                 "Required if args['user_defined_climate_zones'] is True. "
                 "Contains monthly precipitation events per climate zone.  "
                 "Fields must be 'cz_id', %s." % ', '.join(MONTH_ID_TO_LABEL)),
-            "name": "Climate Zone Table"
+            "name": _("Climate Zone Table")
         },
         "climate_zone_raster_path": {
             "type": "raster",
@@ -228,23 +230,23 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "Map of climate zones that are found in the Climate Zone "
                 "Table input.  Pixel values correspond to values in the "
                 "cz_id column."),
-            "name": "Climate Zone"
+            "name": _("Climate Zone")
         },
         "monthly_alpha": {
             "type": "boolean",
             "required": True,
             "about": "If True, use the monthly alpha table.",
-            "name": "Use Monthly Alpha Table (Advanced)"
+            "name": _("Use Monthly Alpha Table (Advanced)")
         },
         "monthly_alpha_path": {
             "type": "csv",
             "required": "monthly_alpha",
             "about": "Required if args['monthly_alpha'] is True.",
-            "name": "Monthly Alpha Table"
+            "name": _("Monthly Alpha Table")
         }
     }
 }

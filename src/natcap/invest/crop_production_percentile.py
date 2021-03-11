@@ -1,5 +1,6 @@
 """InVEST Crop Production Percentile Model."""
 import collections
+import gettext
 import logging
 import os
 import re
@@ -14,10 +15,11 @@ from . import utils
 from . import validation
 
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 ARGS_SPEC = {
-    "model_name": "Crop Production Percentile Model",
+    "model_name": _("Crop Production Percentile Model"),
     "module": __name__,
     "userguide_html": "crop_production.html",
     "args_with_spatial_overlap": {
@@ -38,13 +40,13 @@ ARGS_SPEC = {
             },
             "type": "raster",
             "required": True,
-            "about": (
+            "about": _(
                 "A raster file, representing integer land use/land code "
                 "covers for each cell. This raster should have a projected "
                 "coordinate system with units of meters (e.g. UTM) because "
                 "pixel areas are divided by 10000 in order to report some "
                 "results in hectares."),
-            "name": "Land-Use/Land-Cover Map"
+            "name": _("Land-Use/Land-Cover Map")
         },
         "landcover_to_crop_table_path": {
             "validation_options": {
@@ -52,7 +54,7 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV table mapping canonical crop names to land use codes "
                 "contained in the landcover/use raster.   The allowed crop "
                 "names are abaca, agave, alfalfa, almond, aniseetc, apple, "
@@ -84,7 +86,7 @@ ARGS_SPEC = {
                 "tobacco, tomato, triticale, tropicalnes, tung, turnipfor, "
                 "vanilla, vegetablenes, vegfor, vetch, walnut, watermelon, "
                 "wheat, yam, and yautia."),
-            "name": "Landcover to Crop Table"
+            "name": _("Landcover to Crop Table")
         },
         "aggregate_polygon_path": {
             "type": "vector",
@@ -92,11 +94,11 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "A polygon vector containing features with which to "
                 "aggregate/summarize final results. It is fine to have "
                 "overlapping polygons."),
-            "name": "Aggregate results polygon"
+            "name": _("Aggregate results polygon")
         },
         "model_data_path": {
             "type": "directory",
@@ -104,13 +106,13 @@ ARGS_SPEC = {
             "validation_options": {
                 "exists": True,
             },
-            "about": (
+            "about": _(
                 "A path to the InVEST Crop Production Data directory. These "
                 "data would have been included with the InVEST installer if "
                 "selected, or can be manually downloaded from "
                 "http://releases.naturalcapitalproject.org/.  If downloaded "
                 "with InVEST, the default value should be used."),
-            "name": "Directory to model data"
+            "name": _("Directory to model data")
         }
     }
 }
@@ -209,7 +211,7 @@ def execute(args):
             * climate_bin_maps (contains [cropname]_climate_bin.tif files)
             * climate_percentile_yield (contains
               [cropname]_percentile_yield_table.csv files)
-              
+
             Please see the InVEST user's guide chapter on crop production for
             details about how to download these data.
         args['n_workers'] (int): (optional) The number of worker processes to

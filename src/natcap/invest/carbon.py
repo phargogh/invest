@@ -1,5 +1,6 @@
 # coding=UTF-8
 """Carbon Storage and Sequestration."""
+import gettext
 import codecs
 import logging
 import os
@@ -14,10 +15,11 @@ import taskgraph
 from . import validation
 from . import utils
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 ARGS_SPEC = {
-    "model_name": "InVEST Carbon Model",
+    "model_name": _("InVEST Carbon Model"),
     "module": __name__,
     "userguide_html": "carbonstorage.html",
     "args_with_spatial_overlap": {
@@ -33,19 +35,19 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "A GDAL-supported raster representing the land-cover of the"
                 "current scenario."),
-            "name": "Current Land Use/Land Cover"
+            "name": _("Current Land Use/Land Cover")
         },
         "calc_sequestration": {
             "type": "boolean",
             "required": "do_valuation | do_redd",
-            "about": (
+            "about": _(
                 "Check to enable sequestration analysis. This requires "
                 "inputs of Land Use/Land Cover maps for both current and "
                 "future scenarios."),
-            "name": "Calculate Sequestration"
+            "name": _("Calculate Sequestration")
         },
         "lulc_fut_path": {
             "type": "raster",
@@ -53,23 +55,23 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "A GDAL-supported raster representing the land-cover of the "
                 "future scenario. If REDD scenario analysis is "
                 "enabled, this should be the reference, or baseline, future "
                 "scenario against which to compare the REDD policy "
                 "scenario."),
-            "name": "Future Landcover"
+            "name": _("Future Landcover")
         },
         "do_redd": {
             "type": "boolean",
             "required": False,
-            "about": (
+            "about": _(
                 "Check to enable REDD scenario analysis.  This requires "
                 "three Land Use/Land Cover maps: one for the current "
                 "scenario, one for the future baseline scenario, and one for "
                 "the future REDD policy scenario."),
-            "name": "REDD Scenario Analysis"
+            "name": _("REDD Scenario Analysis")
         },
         "lulc_redd_path": {
             "type": "raster",
@@ -77,11 +79,11 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "A GDAL-supported raster representing the land-cover of "
                 "the REDD policy future scenario.  This scenario will be "
                 "compared to the baseline future scenario."),
-            "name": "REDD Policy)"
+            "name": _("REDD Policy)")
         },
         "carbon_pools_path": {
             "validation_options": {
@@ -90,13 +92,13 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A table that maps the land-cover IDs to carbon pools.  "
                 "The table must contain columns of 'LULC', 'C_above', "
                 "'C_Below', 'C_Soil', 'C_Dead' as described in the User's "
                 "Guide.  The values in LULC must at least include the LULC "
                 "IDs in the land cover maps."),
-            "name": "Carbon Pools"
+            "name": _("Carbon Pools")
         },
         "lulc_cur_year": {
             "validation_options": {
@@ -105,7 +107,7 @@ ARGS_SPEC = {
             "type": "number",
             "required": "calc_sequestration",
             "about": "The calendar year of the current scenario.",
-            "name": "Current Landcover Calendar Year"
+            "name": _("Current Landcover Calendar Year")
         },
         "lulc_fut_year": {
             "validation_options": {
@@ -114,40 +116,40 @@ ARGS_SPEC = {
             "type": "number",
             "required": "calc_sequestration",
             "about": "The calendar year of the future scenario.",
-            "name": "Future Landcover Calendar Year"
+            "name": _("Future Landcover Calendar Year")
         },
         "do_valuation": {
             "type": "boolean",
             "required": False,
-            "about": (
+            "about": _(
                 "if true then run the valuation model on available outputs.  "
                 "At a minimum will run on carbon stocks, if sequestration "
                 "with a future scenario is done and/or a REDD scenario "
                 "calculate NPV for either and report in final HTML "
                 "document."),
-            "name": "Run Valuation Model"
+            "name": _("Run Valuation Model")
         },
         "price_per_metric_ton_of_c": {
             "type": "number",
             "required": "do_valuation",
-            "about": (
+            "about": _(
                 "Is the present value of carbon per metric ton. Used if "
                 "``args['do_valuation']`` is present and True."),
-            "name": "Price/Metric ton of carbon"
+            "name": _("Price/Metric ton of carbon")
         },
         "discount_rate": {
             "type": "number",
             "required": "do_valuation",
             "about": "The discount rate as a floating point percent.",
-            "name": "Market Discount in Price of Carbon (%)"
+            "name": _("Market Discount in Price of Carbon (%)")
         },
         "rate_change": {
             "type": "number",
             "required": "do_valuation",
-            "about": (
+            "about": _(
                 "The floating point percent increase of the price of "
                 "carbon per year."),
-            "name": "Annual Rate of Change in Price of Carbon (%)"
+            "name": _("Annual Rate of Change in Price of Carbon (%)")
         }
     }
 }
@@ -499,7 +501,7 @@ def _calculate_valuation_constant(
     """
     n_years = lulc_fut_year - lulc_cur_year
     ratio = (
-        1 / ((1 + discount_rate / 100) * 
+        1 / ((1 + discount_rate / 100) *
              (1 + rate_change / 100)))
     valuation_constant = (price_per_metric_ton_of_c / n_years)
     # note: the valuation formula in the user's guide uses sum notation.

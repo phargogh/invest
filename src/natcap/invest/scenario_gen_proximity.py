@@ -1,5 +1,6 @@
 """Scenario Generation: Proximity Based."""
 import math
+import gettext
 import shutil
 import os
 import logging
@@ -19,10 +20,11 @@ import taskgraph
 from . import validation
 from . import utils
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 ARGS_SPEC = {
-    "model_name": "Scenario Generator: Proximity Based",
+    "model_name": _("Scenario Generator: Proximity Based"),
     "module": __name__,
     "userguide_html": "scenario_gen_proximity.html",
     "args": {
@@ -36,13 +38,13 @@ ARGS_SPEC = {
             "type": "raster",
             "required": True,
             "about": "Path to the base landcover map",
-            "name": "Base Land Use/Cover"
+            "name": _("Base Land Use/Cover")
         },
         "replacment_lucode": {
             "type": "number",
             "required": True,
             "about": "Code to replace when converting pixels",
-            "name": "Replacement Landcover Code"
+            "name": _("Replacement Landcover Code")
         },
         "area_to_convert": {
             "validation_options": {
@@ -51,7 +53,7 @@ ARGS_SPEC = {
             "type": "number",
             "required": True,
             "about": "Max area (Ha) to convert",
-            "name": "Max area to convert"
+            "name": _("Max area to convert")
         },
         "focal_landcover_codes": {
             "validation_options": {
@@ -61,11 +63,11 @@ ARGS_SPEC = {
             },
             "type": "freestyle_string",
             "required": True,
-            "about": (
+            "about": _(
                 "A space separated string of landcover codes that are used "
                 "to determine the proximity when referring to 'towards' or "
                 "'away' from the base landcover codes"),
-            "name": "Focal Landcover Codes"
+            "name": _("Focal Landcover Codes")
         },
         "convertible_landcover_codes": {
             "validation_options": {
@@ -75,11 +77,11 @@ ARGS_SPEC = {
             },
             "type": "freestyle_string",
             "required": True,
-            "about": (
+            "about": _(
                 "A space separated string of landcover codes that can be "
                 "converted in the generation phase found in "
                 "`args['base_lulc_path']`."),
-            "name": "Convertible Landcover Codes"
+            "name": _("Convertible Landcover Codes")
         },
         "n_fragmentation_steps": {
             "validation_options": {
@@ -87,13 +89,13 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "This parameter is used to divide the conversion simulation "
                 "into equal subareas of the requested max area.  During each "
                 "sub-step the distance transform is recalculated from the "
                 "base landcover codes.  This can affect the final result "
                 "if the base types are also convertible types."),
-            "name": "Number of Steps in Conversion"
+            "name": _("Number of Steps in Conversion")
         },
         "aoi_path": {
             "type": "vector",
@@ -101,28 +103,28 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "This is a set of polygons that will be used to aggregate "
                 "carbon values at the end of the run if provided."),
-            "name": "Area of interest"
+            "name": _("Area of interest")
         },
         "convert_farthest_from_edge": {
             "type": "boolean",
             "required": True,
-            "about": (
+            "about": _(
                 "This scenario converts the convertible landcover codes "
                 "starting at the furthest pixel from the closest base "
                 "landcover codes and moves inward."),
-            "name": "Convert farthest from edge"
+            "name": _("Convert farthest from edge")
         },
         "convert_nearest_to_edge": {
             "type": "boolean",
             "required": True,
-            "about": (
+            "about": _(
                 "This scenario converts the convertible landcover codes "
                 "starting at the closest pixel in the base landcover codes "
                 "and moves outward."),
-            "name": "Convert nearest to edge"
+            "name": _("Convert nearest to edge")
         }
     }
 }

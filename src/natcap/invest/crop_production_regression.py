@@ -1,5 +1,6 @@
 """InVEST Crop Production Percentile Model."""
 import collections
+import gettext
 import os
 import logging
 
@@ -13,10 +14,11 @@ from . import utils
 from . import validation
 
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 ARGS_SPEC = {
-    "model_name": "Crop Production Regression Model",
+    "model_name": _("Crop Production Regression Model"),
     "module": __name__,
     "userguide_html": "crop_production.html",
     "args_with_spatial_overlap": {
@@ -34,13 +36,13 @@ ARGS_SPEC = {
             },
             "type": "raster",
             "required": True,
-            "about": (
+            "about": _(
                 "A raster file, representing integer land use/land code "
                 "covers for each cell. This raster should have a projected "
                 "coordinate system with units of meters (e.g. UTM) because "
                 "pixel areas are divided by 10000 in order to report some "
                 "results in hectares."),
-            "name": "Land-Use/Land-Cover Map"
+            "name": _("Land-Use/Land-Cover Map")
         },
         "landcover_to_crop_table_path": {
             "validation_options": {
@@ -48,12 +50,12 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV table mapping canonical crop names to land use codes "
                 "contained in the landcover/use raster.   The allowed crop "
                 "names are barley, maize, oilpalm, potato, rice, soybean, "
                 "sugarbeet, sugarcane, sunflower, and wheat."),
-            "name": "Landcover to Crop Table"
+            "name": _("Landcover to Crop Table")
         },
         "fertilization_rate_table_path": {
             "validation_options": {
@@ -64,21 +66,21 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A table that maps fertilization rates to crops in the "
                 "simulation.  Must include the headers 'crop_name', "
                 "'nitrogen_rate',  'phosphorous_rate', and "
                 "'potassium_rate'."),
-            "name": "Fertilization Rate Table Path"
+            "name": _("Fertilization Rate Table Path")
         },
         "aggregate_polygon_path": {
             "type": "vector",
             "required": False,
-            "about": (
+            "about": _(
                 "A polygon vector containing features with which to "
                 "aggregate/summarize final results. It is fine to have "
                 "overlapping polygons."),
-            "name": "Aggregate results polygon"
+            "name": _("Aggregate results polygon")
         },
         "model_data_path": {
             "validation_options": {
@@ -86,14 +88,14 @@ ARGS_SPEC = {
             },
             "type": "directory",
             "required": True,
-            "about": (
+            "about": _(
                 "A path to the InVEST Crop Production Data directory. These "
                 "data would have been included with the InVEST installer if "
                 "selected, or can be manually downloaded from "
                 "http://releases.naturalcapitalproject.org/invest. "
                 "If downloaded with InVEST, the default value should be "
                 "used."),
-            "name": "Directory to model data"
+            "name": _("Directory to model data")
         }
     }
 }
@@ -242,7 +244,7 @@ def execute(args):
             * climate_bin_maps (contains [cropname]_climate_bin.tif files)
             * climate_percentile_yield (contains
               [cropname]_percentile_yield_table.csv files)
-              
+
             Please see the InVEST user's guide chapter on crop production for
             details about how to download these data.
 

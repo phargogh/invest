@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """InVEST Coastal Blue Carbon: Main Model.
+import gettext
 
 Implementation Notes
 --------------------
@@ -105,6 +106,7 @@ from osgeo import gdal
 from .. import utils
 from .. import validation
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 
@@ -148,7 +150,7 @@ TASKGRAPH_CACHE_DIR_NAME = 'task_cache'
 OUTPUT_DIR_NAME = 'output'
 
 ARGS_SPEC = {
-    "model_name": "Coastal Blue Carbon",
+    "model_name": _("Coastal Blue Carbon"),
     "module": __name__,
     "userguide_html": "coastal_blue_carbon.html",
     "args": {
@@ -161,27 +163,27 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": False,
-            "about": (
+            "about": _(
                 "A CSV table where each row represents the year and path "
                 "to a raster file on disk representing the landcover raster "
                 "representing the state of the landscape in that year. "
                 "Landcover codes match those in the biophysical table and in "
                 "the landcover transitions table."
             ),
-            "name": "Landcover Snapshots Table",
+            "name": _("Landcover Snapshots Table"),
         },
         "analysis_year": {
             "type": "number",
             "required": False,
-            "name": "Analysis Year",
-            "about": (
+            "name": _("Analysis Year"),
+            "about": _(
                 "An analysis year extends the transient analysis "
                 "beyond the transition years. If not provided, the "
                 "analysis will halt at the final transition year."
             ),
         },
         "biophysical_table_path": {
-            "name": "Biophysical Table",
+            "name": _("Biophysical Table"),
             "type": "csv",
             "required": True,
             "validation_options": {
@@ -204,7 +206,7 @@ ARGS_SPEC = {
                     "litter-yearly-accumulation",
                 ],
             },
-            "about": (
+            "about": _(
                 "A table defining initial carbon stock values, low, medium "
                 "and high-impact disturbance magnitudes (values between 0-1), "
                 "and accumulation rates.  Initial values and accumulation "
@@ -213,12 +215,12 @@ ARGS_SPEC = {
             ),
         },
         "landcover_transitions_table": {
-            "name": "Landcover Transitions Table",
+            "name": _("Landcover Transitions Table"),
             "type": "csv",
             "validation_options": {
                 "required_fields": ['lulc-class'],
             },
-            "about": (
+            "about": _(
                 "A transition matrix mapping the type of carbon action "
                 "undergone when one landcover type transitions to another. "
                 "The first column must have the fieldname 'lulc-class', and "
@@ -240,41 +242,41 @@ ARGS_SPEC = {
             ),
         },
         "do_economic_analysis": {
-            "name": "Calculate Net Present Value of Sequestered Carbon",
+            "name": _("Calculate Net Present Value of Sequestered Carbon"),
             "type": "boolean",
             "required": False,
-            "about": (
+            "about": _(
                 "A boolean value indicating whether the model should run an "
                 "economic analysis."),
         },
         "use_price_table": {
-            "name": "Use Price Table",
+            "name": _("Use Price Table"),
             "type": "boolean",
             "required": False,
-            "about": (
+            "about": _(
                 "boolean value indicating whether a price table is included "
                 "in the arguments and to be used or a price and interest rate "
                 "is provided and to be used instead."),
         },
         "price": {
-            "name": "Price",
+            "name": _("Price"),
             "type": "number",
             "required": "do_economic_analysis and (not use_price_table)",
             "about": "The price per Megatonne CO2e at the base year.",
         },
         "inflation_rate": {
-            "name": "Interest Rate (%)",
+            "name": _("Interest Rate (%)"),
             "type": "number",
             "required": "do_economic_analysis and (not use_price_table)",
-            "about": (
+            "about": _(
                 "Annual change in the price per unit of carbon. A value of "
                 "5 would represent a 5% inflation rate."),
         },
         "price_table_path": {
-            "name": "Price Table",
+            "name": _("Price Table"),
             "type": "csv",
             "required": "use_price_table",
-            "about": (
+            "about": _(
                 "Can be used in place of price and interest rate "
                 "inputs.  The provided CSV table contains the price "
                 "per Megatonne CO2e sequestered for a given year, for "
@@ -282,10 +284,10 @@ ARGS_SPEC = {
                 "year, if provided."),
         },
         "discount_rate": {
-            "name": "Discount Rate (%)",
+            "name": _("Discount Rate (%)"),
             "type": "number",
             "required": "do_economic_analysis",
-            "about": (
+            "about": _(
                 "The discount rate on future valuations of "
                 "sequestered carbon, compounded yearly.  A "
                 "value of 5 would represent a 5% discount, and -10 "

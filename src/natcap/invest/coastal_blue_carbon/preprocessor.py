@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Coastal Blue Carbon Preprocessor."""
+import gettext
 import time
 import os
 import logging
@@ -13,9 +14,10 @@ from .. import validation
 from . import coastal_blue_carbon
 
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 ARGS_SPEC = {
-    "model_name": "Coastal Blue Carbon Preprocessor",
+    "model_name": _("Coastal Blue Carbon Preprocessor"),
     "module": __name__,
     "userguide_html": "coastal_blue_carbon.html",
     "args": {
@@ -23,9 +25,9 @@ ARGS_SPEC = {
         "results_suffix": validation.SUFFIX_SPEC,
         "n_workers": validation.N_WORKERS_SPEC,
         "lulc_lookup_table_path": {
-            "name": "LULC Lookup Table",
+            "name": _("LULC Lookup Table"),
             "type": "csv",
-            "about": (
+            "about": _(
                 "A CSV table used to map lulc classes to their values "
                 "in a raster, as well as to indicate whether or not "
                 "the lulc class is a coastal blue carbon habitat."),
@@ -41,13 +43,13 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV table where each row represents the year and path "
                 "to a raster file on disk representing the landcover raster "
                 "representing the state of the landscape in that year. "
                 "Landcover codes match those in the LULC lookup table."
             ),
-            "name": "LULC Snapshots Table",
+            "name": _("LULC Snapshots Table"),
         },
     }
 }

@@ -1,5 +1,6 @@
 """RouteDEM for exposing the natcap.invest's routing package to UI."""
 import os
+import gettext
 import logging
 
 from osgeo import gdal
@@ -11,10 +12,11 @@ import numpy
 from . import utils
 from . import validation
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 ARGS_SPEC = {
-    "model_name": "RouteDEM",
+    "model_name": _("RouteDEM"),
     "module": __name__,
     "userguide_html": "routedem.html",
     "args": {
@@ -24,11 +26,11 @@ ARGS_SPEC = {
         "dem_path": {
             "type": "raster",
             "required": True,
-            "about": (
+            "about": _(
                 "A GDAL-supported raster file containing a base Digital "
                 "Elevation Model to execute the routing functionality "
                 "across."),
-            "name": "Digital Elevation Model"
+            "name": _("Digital Elevation Model")
         },
         "dem_band_index": {
             "validation_options": {
@@ -36,10 +38,10 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": False,
-            "about": (
+            "about": _(
                 "The band index to use from the raster. This positive "
                 "integer is 1-based. Default: 1"),
-            "name": "Band Index"
+            "name": _("Band Index")
         },
         "algorithm": {
             "validation_options": {
@@ -47,56 +49,56 @@ ARGS_SPEC = {
             },
             "type": "option_string",
             "required": True,
-            "about": (
+            "about": _(
                 "The routing algorithm to use. "
                 "<ul><li>D8: all water flows directly into the most downhill "
                 "of each of the 8 neighbors of a cell.</li>"
                 "<li>MFD: Multiple Flow Direction. Fractional flow is "
                 "modeled between pixels.</li></ul>"),
-            "name": "Routing Algorithm"
+            "name": _("Routing Algorithm")
         },
         "calculate_flow_direction": {
             "type": "boolean",
             "required": False,
             "about": "Select to calculate flow direction",
-            "name": "Calculate Flow Direction"
+            "name": _("Calculate Flow Direction")
         },
         "calculate_flow_accumulation": {
             "validation_options": {},
             "type": "boolean",
             "required": False,
             "about": "Select to calculate flow accumulation.",
-            "name": "Calculate Flow Accumulation"
+            "name": _("Calculate Flow Accumulation")
         },
         "calculate_stream_threshold": {
             "type": "boolean",
             "required": False,
             "about": "Select to calculate a stream threshold to flow accumulation.",
-            "name": "Calculate Stream Thresholds"
+            "name": _("Calculate Stream Thresholds")
         },
         "threshold_flow_accumulation": {
             "validation_options": {},
             "type": "number",
             "required": "calculate_stream_threshold",
-            "about": (
+            "about": _(
                 "The number of upstream cells that must flow into a cell "
                 "before it's classified as a stream."),
-            "name": "Threshold Flow Accumulation Limit"
+            "name": _("Threshold Flow Accumulation Limit")
         },
         "calculate_downstream_distance": {
             "type": "boolean",
             "required": False,
-            "about": (
+            "about": _(
                 "If selected, creates a downstream distance raster based "
                 "on the thresholded flow accumulation stream "
                 "classification."),
-            "name": "Calculate Distance to stream"
+            "name": _("Calculate Distance to stream")
         },
         "calculate_slope": {
             "type": "boolean",
             "required": False,
             "about": "If selected, calculates slope from the provided DEM.",
-            "name": "Calculate Slope"
+            "name": _("Calculate Slope")
         }
     }
 }
@@ -150,7 +152,7 @@ def _threshold_flow(flow_accum_pixels, threshold, in_nodata, out_nodata):
     valid_mask = slice(None)
     if in_nodata is not None:
         valid_mask = ~numpy.isclose(flow_accum_pixels, in_nodata)
-    
+
     out_matrix[valid_mask & stream_mask] = 1
     out_matrix[valid_mask & ~stream_mask] = 0
     return out_matrix

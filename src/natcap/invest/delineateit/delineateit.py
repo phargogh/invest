@@ -1,5 +1,6 @@
 """DelineateIt wrapper for pygeoprocessing's watershed delineation routine."""
 import os
+import gettext
 import logging
 import time
 import math
@@ -20,10 +21,11 @@ from .. import validation
 from . import delineateit_core
 
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 ARGS_SPEC = {
-    "model_name": "DelineateIt: Watershed Delineation",
+    "model_name": _("DelineateIt: Watershed Delineation"),
     "module": __name__,
     "userguide_html": "delineateit.html",
     "args_with_spatial_overlap": {
@@ -40,35 +42,35 @@ ARGS_SPEC = {
             },
             "type": "raster",
             "required": True,
-            "about": (
+            "about": _(
                 "A GDAL-supported raster file with an elevation value for "
                 "each cell."),
-            "name": "Digital Elevation Model"
+            "name": _("Digital Elevation Model")
         },
         "detect_pour_points": {
             "type": "boolean",
             "required": False,
-            "about": (
+            "about": _(
                 "If ``True``, the pour point detection algorithm will run, "
                 "creating a point vector file pour_points.gpkg."),
-            "name": "Detect pour points"
+            "name": _("Detect pour points")
         },
         "outlet_vector_path": {
             "type": "vector",
             "required": "not detect_pour_points",
-            "about": (
+            "about": _(
                 "This is a layer of geometries representing watershed "
                 "outlets such as municipal water intakes or lakes."),
-            "name": "Outlet Features"
+            "name": _("Outlet Features")
         },
         "snap_points": {
             "type": "boolean",
             "required": False,
-            "about": (
+            "about": _(
                 "Whether to snap point geometries to the nearest stream "
                 "pixel.  If ``True``, ``args['flow_threshold']`` and "
                 "``args['snap_distance']`` must also be defined."),
-            "name": "Snap points to the nearest stream"
+            "name": _("Snap points to the nearest stream")
         },
         "flow_threshold": {
             "validation_options": {
@@ -76,12 +78,12 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": "snap_points",
-            "about": (
+            "about": _(
                 "The number of upstream cells that must flow into a cell "
                 "before it's considered part of a stream such that retention "
                 "stops and the remaining export is exported to the stream.  "
                 "Used to define streams from the DEM."),
-            "name": "Threshold Flow Accumulation"
+            "name": _("Threshold Flow Accumulation")
         },
         "snap_distance": {
             "validation_options": {
@@ -89,24 +91,24 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": "snap_points",
-            "about": (
+            "about": _(
                 "If provided, the maximum search radius in pixels to look "
                 "for stream pixels.  If a stream pixel is found within the "
                 "snap distance, the outflow point will be snapped to the "
                 "center of the nearest stream pixel.  Geometries that are "
                 "not points (such as Lines and Polygons) will not be "
                 "snapped.  MultiPoint geoemtries will also not be snapped."),
-            "name": "Pixel Distance to Snap Outlet Points"
+            "name": _("Pixel Distance to Snap Outlet Points")
         },
         "skip_invalid_geometry": {
             "type": "boolean",
             "required": False,
-            "about": (
+            "about": _(
                 "If ``True``, any invalid geometries encountered "
                 "in the outlet vector will not be included in the "
                 "delineation.  If ``False``, an invalid geometry "
                 "will cause DelineateIt to crash."),
-            "name": "Crash on invalid geometries"
+            "name": _("Crash on invalid geometries")
         }
     }
 }

@@ -1,5 +1,6 @@
 """Pollinator service model for InVEST."""
 import itertools
+import gettext
 import collections
 import re
 import os
@@ -16,10 +17,11 @@ import taskgraph
 from . import utils
 from . import validation
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 ARGS_SPEC = {
-    "model_name": "Crop Pollination",
+    "model_name": _("Crop Pollination"),
     "module": __name__,
     "userguide_html": "croppollination.html",
     "args": {
@@ -32,11 +34,11 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "This is the landcover map that's used to map biophysical "
                 "properties about habitat and floral resources of landcover "
                 "types to a spatial layout."),
-            "name": "Land Cover Map"
+            "name": _("Land Cover Map")
         },
         "guild_table_path": {
             "validation_options": {
@@ -44,7 +46,7 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A table indicating the bee species to analyze in this model "
                 "run.  Table headers must include:<br/>* 'species': a bee "
                 "species whose column string names will be referred to in "
@@ -61,7 +63,7 @@ ARGS_SPEC = {
                 "indicating the relative abundance of the particular species "
                 "with respect to the sum of all relative abundance weights "
                 "in the table."),
-            "name": "Guild Table"
+            "name": _("Guild Table")
         },
         "landcover_biophysical_table_path": {
             "validation_options": {
@@ -69,7 +71,7 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV table mapping landcover codes in the landcover raster "
                 "to indexes of nesting availability for each nesting "
                 "substrate referenced in guilds table as well as indexes of "
@@ -84,7 +86,7 @@ ARGS_SPEC = {
                 "<br/>* For every season matching _FORAGING_ACTIVITY_PATTERN "
                 "in the guilds table, a column matching the pattern in "
                 "`_LANDCOVER_FLORAL_RESOURCES_INDEX_HEADER`."),
-            "name": "Land Cover Biophysical Table"
+            "name": _("Land Cover Biophysical Table")
         },
         "farm_vector_path": {
             "validation_options": {
@@ -93,7 +95,7 @@ ARGS_SPEC = {
             },
             "type": "vector",
             "required": False,
-            "about": (
+            "about": _(
                 "This is a layer of polygons representing farm sites to be "
                 "analyzed.  The vector must have at least the following "
                 "fields:<br/><br/>* season (string): season in which the "
@@ -114,7 +116,7 @@ ARGS_SPEC = {
                 "in the biophysical and guild table.  Any areas that "
                 "overlap the landcover map will replace nesting substrate "
                 "suitability with this value.  Ranges from 0..1."),
-            "name": "Farm Vector"
+            "name": _("Farm Vector")
         }
     }
 }
@@ -233,7 +235,7 @@ def execute(args):
         args['guild_table_path'] (string): file path to a table indicating
             the bee species to analyze in this model run.  Table headers
             must include:
-            
+
                 * 'species': a bee species whose column string names will
                     be referred to in other tables and the model will output
                     analyses per species.

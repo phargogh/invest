@@ -1,5 +1,6 @@
 """InVEST Wave Energy Model Core Code"""
 import math
+import gettext
 import os
 import logging
 import struct
@@ -20,10 +21,11 @@ import pygeoprocessing
 from . import validation
 from . import utils
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 ARGS_SPEC = {
-    "model_name": "Wave Energy",
+    "model_name": _("Wave Energy"),
     "module": __name__,
     "userguide_html": "wave_energy.html",
     "args": {
@@ -37,7 +39,7 @@ ARGS_SPEC = {
             "type": "directory",
             "required": True,
             "about": "Select the folder that has the packaged Wave Energy Data.",
-            "name": "Wave Base Data Folder"
+            "name": _("Wave Base Data Folder")
         },
         "analysis_area_path": {
             "validation_options": {
@@ -52,11 +54,11 @@ ARGS_SPEC = {
             },
             "type": "option_string",
             "required": True,
-            "about": (
+            "about": _(
                 "A list of analysis areas for which the model can currently "
                 "be run.  All the wave energy data needed for these areas "
                 "are pre-packaged in the WaveData folder."),
-            "name": "Analysis Area"
+            "name": _("Analysis Area")
         },
         "aoi_path": {
             "validation_options": {
@@ -65,21 +67,21 @@ ARGS_SPEC = {
             },
             "type": "vector",
             "required": False,
-            "about": (
+            "about": _(
                 "An OGR-supported vector file containing a single polygon "
                 "representing the area of interest.  This input is required "
                 "for computing valuation and is recommended for biophysical "
                 "runs as well.  The AOI should be projected in linear units "
                 "of meters."),
-            "name": "Area of Interest"
+            "name": _("Area of Interest")
         },
         "machine_perf_path": {
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV Table that has the performance of a particular wave "
                 "energy machine at certain sea state conditions."),
-            "name": "Machine Performance Table"
+            "name": _("Machine Performance Table")
         },
         "machine_param_path": {
             "validation_options": {
@@ -87,27 +89,27 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV Table that has parameter values for a wave energy "
                 "machine.  This includes information on the maximum "
                 "capacity of the device and the upper limits for wave height "
                 "and period."),
-            "name": "Machine Parameter Table"
+            "name": _("Machine Parameter Table")
         },
         "dem_path": {
             "type": "raster",
             "required": True,
-            "about": (
+            "about": _(
                 "A GDAL-supported raster file containing a digital elevation "
                 "model dataset that has elevation values in meters.  Used to "
                 "get the cable distance for wave energy transmission."),
-            "name": "Global Digital Elevation Model"
+            "name": _("Global Digital Elevation Model")
         },
         "valuation_container": {
             "type": "boolean",
             "required": False,
             "about": "Indicates whether the model includes valuation",
-            "name": "Valuation"
+            "name": _("Valuation")
         },
         "land_gridPts_path": {
             "validation_options": {
@@ -115,10 +117,10 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": "valuation_container",
-            "about": (
+            "about": _(
                 "A CSV Table that has the landing points and grid points "
                 "locations for computing cable distances."),
-            "name": "Grid Connection Points Table"
+            "name": _("Grid Connection Points Table")
         },
         "machine_econ_path": {
             "validation_options": {
@@ -126,10 +128,10 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": "valuation_container",
-            "about": (
+            "about": _(
                 "A CSV Table that has the economic parameters for the wave "
                 "energy machine."),
-            "name": "Machine Economic Table"
+            "name": _("Machine Economic Table")
         },
         "number_of_machines": {
             "validation_options": {
@@ -137,10 +139,10 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": "valuation_container",
-            "about": (
+            "about": _(
                 "An integer for how many wave energy machines will be in the "
                 "wave farm."),
-            "name": "Number of Machines"
+            "name": _("Number of Machines")
         }
     }
 }

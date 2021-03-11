@@ -1,5 +1,6 @@
 """InVEST Nutrient Delivery Ratio (NDR) module."""
 import itertools
+import gettext
 import logging
 import os
 import pickle
@@ -13,10 +14,11 @@ import taskgraph
 from .. import utils, validation
 from . import ndr_core
 
+_ = gettext.gettext
 LOGGER = logging.getLogger(__name__)
 
 ARGS_SPEC = {
-    "model_name": "Nutrient Delivery Ratio Model (NDR)",
+    "model_name": _("Nutrient Delivery Ratio Model (NDR)"),
     "module": __name__,
     "userguide_html": "ndr.html",
     "args_with_spatial_overlap": {
@@ -34,14 +36,14 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "A GDAL-supported raster file containing elevation values for "
                 "each cell.  Make sure the DEM is corrected by filling in "
                 "sinks, and if necessary burning hydrographic features into "
                 "the elevation model (recommended when unusual streams are "
                 "observed.) See the Working with the DEM section of the "
                 "InVEST User's Guide for more information."),
-            "name": "DEM"
+            "name": _("DEM")
         },
         "lulc_path": {
             "type": "raster",
@@ -49,20 +51,20 @@ ARGS_SPEC = {
             "validation_options": {
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "A GDAL-supported raster file containing integer values "
                 "representing the LULC code for each cell.  The LULC code "
                 "should be an integer."),
-            "name": "Land Use"
+            "name": _("Land Use")
         },
         "runoff_proxy_path": {
             "type": "raster",
             "required": True,
-            "about": (
+            "about": _(
                 "Weighting factor to nutrient loads.  Internally this value "
                 "is normalized by its average values so a variety of data "
                 "can be used including precipitation or quickflow."),
-            "name": "Nutrient Runoff Proxy"
+            "name": _("Nutrient Runoff Proxy")
         },
         "watersheds_path": {
             "type": "vector",
@@ -71,13 +73,13 @@ ARGS_SPEC = {
                 "required_fields": ['ws_id'],
                 "projected": True,
             },
-            "about": (
+            "about": _(
                 "A GDAL-supported vector file containing watersheds such "
                 "that each watershed contributes to a point of interest "
                 "where water quality will be analyzed.  It must have the "
                 "integer field 'ws_id' where the values uniquely identify "
                 "each watershed."),
-            "name": "Watersheds"
+            "name": _("Watersheds")
         },
         "biophysical_table_path": {
             "validation_options": {
@@ -85,25 +87,25 @@ ARGS_SPEC = {
             },
             "type": "csv",
             "required": True,
-            "about": (
+            "about": _(
                 "A CSV table containing model information corresponding to "
                 "each of the land use classes in the LULC raster input.  It "
                 "must contain the fields 'lucode', 'load_n' (or p), 'eff_n' "
                 "(or p), and 'crit_len_n' (or p) depending on which "
                 "nutrients are selected."),
-            "name": "Biophysical Table"
+            "name": _("Biophysical Table")
         },
         "calc_p": {
             "type": "boolean",
             "required": True,
             "about": "Select to calculate phosphorous export.",
-            "name": "Calculate phosphorous retention"
+            "name": _("Calculate phosphorous retention")
         },
         "calc_n": {
             "type": "boolean",
             "required": True,
             "about": "Select to calculate nitrogen export.",
-            "name": "Calculate Nitrogen Retention"
+            "name": _("Calculate Nitrogen Retention")
         },
         "threshold_flow_accumulation": {
             "validation_options": {
@@ -111,29 +113,29 @@ ARGS_SPEC = {
             },
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "The number of upstream cells that must flow into a cell "
                 "before it's considered part of a stream such that "
                 "retention stops and the remaining export is exported to the "
                 "stream.  Used to define streams from the DEM."),
-            "name": "Threshold Flow Accumulation"
+            "name": _("Threshold Flow Accumulation")
         },
         "k_param": {
             "type": "number",
             "required": True,
-            "about": (
+            "about": _(
                 "Calibration parameter that determines the shape of the "
                 "relationship between hydrologic connectivity (the degree of "
                 "connection from patches of land to the stream) and the "
                 "nutrient delivery ratio (percentage of nutrient that "
                 "actually reaches the stream)"),
-            "name": "Borselli k parameter",
+            "name": _("Borselli k parameter"),
         },
         "subsurface_critical_length_n": {
             "type": "number",
             "required": "calc_n",
-            "name": "Subsurface Critical Length (Nitrogen)",
-            "about": (
+            "name": _("Subsurface Critical Length (Nitrogen)"),
+            "about": _(
                 "The distance (traveled subsurface and downslope) after "
                 "which it is assumed that soil retains nutrient at its "
                 "maximum capacity, given in meters. If dissolved nutrients "
@@ -147,8 +149,8 @@ ARGS_SPEC = {
         "subsurface_critical_length_p": {
             "type": "number",
             "required": "calc_p",
-            "name": "Subsurface Critical Length (Phosphorous)",
-            "about": (
+            "name": _("Subsurface Critical Length (Phosphorous)"),
+            "about": _(
                 "The distance (traveled subsurface and downslope) after "
                 "which it is assumed that soil retains nutrient at its "
                 "maximum capacity, given in meters. If dissolved nutrients "
@@ -162,8 +164,8 @@ ARGS_SPEC = {
         "subsurface_eff_n": {
             "type": "number",
             "required": "calc_n",
-            "name": "Subsurface Maximum Retention Efficiency (Nitrogen)",
-            "about": (
+            "name": _("Subsurface Maximum Retention Efficiency (Nitrogen)"),
+            "about": _(
                 "The maximum nutrient retention efficiency that can be "
                 "reached through subsurface flow, a floating point value "
                 "between 0 and 1. This field characterizes the retention due "
@@ -172,8 +174,8 @@ ARGS_SPEC = {
         "subsurface_eff_p": {
             "type": "number",
             "required": "calc_p",
-            "name": "Subsurface Maximum Retention Efficiency (Phosphorous)",
-            "about": (
+            "name": _("Subsurface Maximum Retention Efficiency (Phosphorous)"),
+            "about": _(
                 "The maximum nutrient retention efficiency that can be "
                 "reached through subsurface flow, a floating point value "
                 "between 0 and 1. This field characterizes the retention due "
@@ -1270,7 +1272,7 @@ def _calculate_sub_ndr(
 
     def _sub_ndr_op(dist_to_channel_array):
         """Calculate subsurface NDR."""
-        # nodata value from this ntermediate output should always be 
+        # nodata value from this ntermediate output should always be
         # defined by pygeoprocessing, not None
         valid_mask = ~numpy.isclose(
             dist_to_channel_array, dist_to_channel_nodata)
