@@ -124,7 +124,7 @@ MAC_BINARIES_ZIP_FILE := "$(DIST_DIR)/InVEST-$(VERSION)-mac.zip"
 MAC_APPLICATION_BUNDLE := "$(BUILD_DIR)/mac_app_$(VERSION)/InVEST.app"
 
 
-.PHONY: fetch install binaries apidocs userguide windows_installer mac_dmg sampledata sampledata_single test test_ui clean help check python_packages jenkins purge mac_zipfile deploy signcode $(GIT_SAMPLE_DATA_REPO_PATH) $(GIT_TEST_DATA_REPO_PATH) $(GIT_UG_REPO_REV)
+.PHONY: fetch install binaries apidocs userguide windows_installer mac_dmg sampledata sampledata_single test test_ui clean help check python_packages jenkins purge mac_zipfile deploy signcode i18n_compile $(GIT_SAMPLE_DATA_REPO_PATH) $(GIT_TEST_DATA_REPO_PATH) $(GIT_UG_REPO_REV)
 
 # Very useful for debugging variables!
 # $ make print-FORKNAME, for example, would print the value of the variable $(FORKNAME)
@@ -155,6 +155,7 @@ help:
 	@echo "  test_ui           to run pytest on the ui_tests directory"
 	@echo "  clean             to remove temporary directories and files (but not dist/)"
 	@echo "  purge             to remove temporary directories, cloned repositories and the built environment."
+	@echo "  i18n_compile      to compile translateable strings into per-language MO files."
 	@echo "  help              to print this help and exit"
 
 $(BUILD_DIR) $(DATA_DIR) $(DIST_DIR) $(DIST_DATA_DIR):
@@ -234,11 +235,11 @@ install: $(DIST_DIR)/natcap.invest%.whl
 
 
 # Bulid python packages and put them in dist/
-python_packages: $(DIST_DIR)/natcap.invest%.whl $(DIST_DIR)/natcap.invest%.zip
-$(DIST_DIR)/natcap.invest%.whl: | $(DIST_DIR)
+python_packages: i18n_compile $(DIST_DIR)/natcap.invest%.whl $(DIST_DIR)/natcap.invest%.zip
+$(DIST_DIR)/natcap.invest%.whl: i18n_compile | $(DIST_DIR)
 	$(PYTHON) setup.py bdist_wheel
 
-$(DIST_DIR)/natcap.invest%.zip: | $(DIST_DIR)
+$(DIST_DIR)/natcap.invest%.zip: i18n_compile | $(DIST_DIR)
 	$(PYTHON) setup.py sdist --formats=zip
 
 
@@ -247,7 +248,7 @@ $(DIST_DIR)/natcap.invest%.zip: | $(DIST_DIR)
 # import, we want to know right away.  No need to provide the `.exe` extension
 # on Windows as the .exe extension is assumed.
 binaries: $(INVEST_BINARIES_DIR)
-$(INVEST_BINARIES_DIR): | $(DIST_DIR) $(BUILD_DIR)
+$(INVEST_BINARIES_DIR): i18n_compile | $(DIST_DIR) $(BUILD_DIR)
 	-$(RMDIR) $(BUILD_DIR)/pyi-build
 	-$(RMDIR) $(INVEST_BINARIES_DIR)
 	$(PYTHON) -m PyInstaller --workpath $(BUILD_DIR)/pyi-build --clean --distpath $(DIST_DIR) exe/invest.spec
@@ -392,6 +393,10 @@ deploy:
 	-$(GSUTIL) -m rsync -r $(DIST_DIR)/userguide $(DIST_URL_BASE)/userguide
 	@echo "Application binaries (if they were created) can be downloaded from:"
 	@echo "  * $(DOWNLOAD_DIR_URL)/$(subst $(DIST_DIR)/,,$(WINDOWS_INSTALLER_FILE))"
+
+i18n_compile:
+	pybabel compile --directory=src/natcap/invest/i18n
+
 
 # Notes on Makefile development
 #
