@@ -4,6 +4,7 @@ import argparse
 import codecs
 import collections
 import datetime
+import gettext
 import importlib
 import json
 import logging
@@ -391,6 +392,9 @@ def main(user_args=None):
         action='store_const', const=logging.DEBUG,
         help='Enable debug logging. Alias for -vvvvv')
 
+    # TODO: can I list available languages?
+    parser.add_argument('--lang')
+
     subparsers = parser.add_subparsers(dest='subcommand')
 
     listmodels_subparser = subparsers.add_parser(
@@ -463,6 +467,16 @@ def main(user_args=None):
         help='Define a location for the saved .py file')
 
     args = parser.parse_args(user_args)
+
+    # Install a translation if one is specified.
+    # TODO: Can we compare requested language against available languages?
+    # TODO: Allow for MO usage
+    # TODO: Allow for PO compilation and subsequent MO usage
+    gettext.translation(
+        'messages',
+        localedir=os.path.join(os.path.dirname(__file__), 'i18n'),
+        fallback=True,  # Fallback to English in invalid language provided.
+        languages=[args.lang]).install()
 
     root_logger = logging.getLogger()
     handler = logging.StreamHandler(sys.stdout)
