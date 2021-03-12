@@ -24,4 +24,3 @@ requests
 coverage
 xlwt
 dmgbuild==1.4.2; sys_platform == 'darwin'  # pip-only
-babel

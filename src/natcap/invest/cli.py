@@ -12,9 +12,13 @@ import multiprocessing
 import os
 import platform
 import pprint
+import re
 import sys
+import tempfile
 import textwrap
 import warnings
+
+from babel.messages import frontend
 
 try:
     from . import __version__
@@ -472,11 +476,51 @@ def main(user_args=None):
     # TODO: Can we compare requested language against available languages?
     # TODO: Allow for MO usage
     # TODO: Allow for PO compilation and subsequent MO usage
-    gettext.translation(
-        'messages',
-        localedir=os.path.join(os.path.dirname(__file__), 'i18n'),
-        fallback=True,  # Fallback to English in invalid language provided.
-        languages=[args.lang]).install()
+    if os.path.exists(args.lang):
+        if args.lang.endswith('.mo'):
+            # use .mo file directly, no need to compile
+            LOGGER.debug(f'User provided .mo file at {args.lang}')
+            message_object_file = args.lang
+        else:
+            # Assume PO-compatible file, attempt to compile and use.
+            # Determine language by reading file.
+            locale_string = None
+            with open(args.lang) as po_file:
+                for line in po_file:
+                    #  "Language: es\n"
+                    if line.startswith('"Language:'):
+                        locale_string = re.findall(
+                            '[a-zA-Z_]+', line.split(':')[1])
+
+            # Don't want the python or application install to be mutable, so
+            # installing the compiled .mo file into a temp dir.
+            # Filesize of the .mo file should be a few Kb, system temp dir OK.
+            locale_dir = tempfile.mkdtemp(prefix='natcap.invest-i18n')
+            target_path = os.path.join(
+                locale_dir, locale_string, 'LC_MESSAGES')
+            if not os.path.exists(target_path):
+                os.makedirs(target_path)
+
+            frontend.CommandLineInterface().run(
+                ["pybabel", "compile",
+                    f"--directory={locale_dir}",
+                    f"--input-file={args.lang}",
+                    f"--locale={locale_string}"])
+            message_object_file = os.path.join(
+                target_path, f"{locale_string}.mo")
+            LOGGER.debug(
+                'Compiled user-defined PO file to MO, '
+                f'{args.lang} --> {message_object_file}')
+
+        with open(message_object_file, 'rb') as mo_file:
+            gettext.GNUTranslations(mo_file).install()
+    else:
+        translation = gettext.translation(
+            'messages',
+            localedir=os.path.join(os.path.dirname(__file__), 'i18n'),
+            fallback=True,  # Fallback to English in invalid language provided.
+            languages=[args.lang])
+        translation.install()
 
     root_logger = logging.getLogger()
     handler = logging.StreamHandler(sys.stdout)
