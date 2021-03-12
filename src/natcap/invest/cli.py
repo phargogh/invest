@@ -474,8 +474,6 @@ def main(user_args=None):
 
     # Install a translation if one is specified.
     # TODO: Can we compare requested language against available languages?
-    # TODO: Allow for MO usage
-    # TODO: Allow for PO compilation and subsequent MO usage
     if os.path.exists(args.lang):
         if args.lang.endswith('.mo'):
             # use .mo file directly, no need to compile
@@ -569,8 +567,7 @@ def main(user_args=None):
             name=parsed_datastack.model_name)
 
         try:
-            validation_result = getattr(
-                model_module, 'validate')(parsed_datastack.args)
+            validation_result = model_module.validate(parsed_datastack.args)
         except KeyError as missing_keys_error:
             if args.json:
                 message = json.dumps(
@@ -645,7 +642,7 @@ def main(user_args=None):
 
             # We're deliberately not validating here because the user
             # can just call ``invest validate <datastack>`` to validate.
-            getattr(model_module, 'execute')(parsed_datastack.args)
+            model_module.execute(parsed_datastack.args)
 
     # If we're running in a GUI (either through ``invest run`` or
     # ``invest quickrun``), we'll need to load the Model's GUI class,
@@ -658,7 +655,7 @@ def main(user_args=None):
         # Creating this warning for future us to alert us to potential issues
         # if/when we forget to define QT_MAC_WANTS_LAYER at runtime.
         if (platform.system() == "Darwin" and
-                "QT_MAC_WANTS_LAYER"  not in os.environ):
+                "QT_MAC_WANTS_LAYER" not in os.environ):
             warnings.warn(
                 "Mac OS X Big Sur may require the 'QT_MAC_WANTS_LAYER' "
                 "environment variable to be defined in order to run.  If "
