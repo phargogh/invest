@@ -262,12 +262,13 @@ _OUTPUT_BASE_FILES = {
     'b_sum_path': 'B_sum.tif',
     'b_path': 'B.tif',
     'vri_path': 'Vri.tif',
-    }
+}
 
 _INTERMEDIATE_BASE_FILES = {
     'aet_path': 'aet.tif',
     'aetm_path_list': ['aetm_%d.tif' % (x+1) for x in range(N_MONTHS)],
     'flow_dir_mfd_path': 'flow_dir_mfd.tif',
+    'flow_dir_d8_path': 'flow_dir_d8.tif',
     'qfm_path_list': ['qf_%d.tif' % (x+1) for x in range(N_MONTHS)],
     'stream_path': 'stream.tif',
 }
@@ -291,7 +292,7 @@ _TMP_BASE_FILES = {
     'l_aligned_path': 'l_aligned.tif',
     'cz_aligned_raster_path': 'cz_aligned.tif',
     'l_sum_pre_clamp': 'l_sum_pre_clamp.tif'
-    }
+}
 
 
 def execute(args):
@@ -543,29 +544,28 @@ def _execute(args):
         task_name='fill dem pits')
 
     flow_dir_task = task_graph.add_task(
-        func=pygeoprocessing.routing.flow_dir_mfd,
+        func=pygeoprocessing.routing.flow_dir_d8,
         args=(
             (file_registry['dem_pit_filled_path'], 1),
-            file_registry['flow_dir_mfd_path']),
+            file_registry['flow_dir_d8_path']),
         kwargs={'working_dir': cache_dir},
-        target_path_list=[file_registry['flow_dir_mfd_path']],
+        target_path_list=[file_registry['flow_dir__path']],
         dependent_task_list=[fill_pit_task],
-        task_name='flow dir mfd')
+        task_name='flow dir d8')
 
     flow_accum_task = task_graph.add_task(
-        func=pygeoprocessing.routing.flow_accumulation_mfd,
+        func=pygeoprocessing.routing.flow_accumulation_d8,
         args=(
-            (file_registry['flow_dir_mfd_path'], 1),
+            (file_registry['flow_dir_d8_path'], 1),
             file_registry['flow_accum_path']),
         target_path_list=[file_registry['flow_accum_path']],
         dependent_task_list=[flow_dir_task],
         task_name='flow accum task')
 
     stream_threshold_task = task_graph.add_task(
-        func=pygeoprocessing.routing.extract_streams_mfd,
+        func=pygeoprocessing.routing.extract_streams_d8,
         args=(
             (file_registry['flow_accum_path'], 1),
-            (file_registry['flow_dir_mfd_path'], 1),
             threshold_flow_accumulation,
             file_registry['stream_path']),
         target_path_list=[file_registry['stream_path']],
@@ -708,7 +708,7 @@ def _execute(args):
                 file_registry['precip_path_aligned_list'],
                 file_registry['et0_path_aligned_list'],
                 file_registry['qfm_path_list'],
-                file_registry['flow_dir_mfd_path'],
+                file_registry['flow_dir_d8_path'],
                 file_registry['kc_path_list'],
                 alpha_month_map,
                 beta_i, gamma, file_registry['stream_path'],
@@ -751,9 +751,9 @@ def _execute(args):
 
     LOGGER.info('calculate L_sum')  # Eq. [12]
     l_sum_task = task_graph.add_task(
-        func=pygeoprocessing.routing.flow_accumulation_mfd,
+        func=pygeoprocessing.routing.flow_accumulation_d8,
         args=(
-            (file_registry['flow_dir_mfd_path'], 1),
+            (file_registry['flow_dir_d8_path'], 1),
             file_registry['l_sum_path']),
         kwargs={'weight_raster_path_band': (file_registry['l_path'], 1)},
         target_path_list=[file_registry['l_sum_path']],
@@ -769,7 +769,7 @@ def _execute(args):
     b_sum_task = task_graph.add_task(
         func=seasonal_water_yield_core.route_baseflow_sum,
         args=(
-            file_registry['flow_dir_mfd_path'],
+            file_registry['flow_dir_d8_path'],
             file_registry['l_path'],
             file_registry['l_avail_path'],
             file_registry['l_sum_path'],
@@ -1191,6 +1191,24 @@ def _calculate_l_avail(l_path, gamma, target_l_avail_path):
     pygeoprocessing.raster_calculator(
         [(l_path, 1)], l_avail_op, target_l_avail_path, gdal.GDT_Float32,
         li_nodata)
+
+
+def _threshold_streams_d8(flow_accum_path, threshold_flow_accumulation,
+                          target_path):
+    from natcap.invest.delineateit import delineateit
+    flow_accumulation_nodata = pygeoprocessing.get_raster_info(
+        flow_accum_path)['nodata'][0]
+    flow_dir_nodata = pygeoprocessing.get_raster_info(flow_dir_d8)['nodata'][0]
+
+    out_nodata = 255  # match mfd streams nodata
+
+    pygeoprocessing.raster_calculator(
+        [(flow_accum_path, 1),
+            (flow_accumulation_nodata, 'raw'),
+            (out_nodata, 'raw'),
+            (threshold_flow_accumulation, 'raw')],
+        delineateit._threshold_streams,
+        target_path, gdal.GDT_Byte, out_nodata)
 
 
 @validation.invest_validator
