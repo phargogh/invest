@@ -411,7 +411,7 @@ cpdef calculate_local_recharge(
             None.
 
     """
-    cdef int i_n, flow_dir_nodata, flow_dir_mfd
+    cdef int i_n, flow_dir_nodata, flow_dir_d8
     cdef int peak_pixel
     cdef int xs, ys, xs_root, ys_root, xoff, yoff, flow_dir_s
     cdef int xi, yi, xj, yj, flow_dir_j, p_ij_base
@@ -420,8 +420,8 @@ cpdef calculate_local_recharge(
     cdef double pet_m, p_m, qf_m, et0_m, aet_i, p_i, qf_i, l_i, l_avail_i
     cdef float qf_nodata, kc_nodata
 
-    cdef int j_neighbor_end_index, mfd_dir_sum
-    cdef float mfd_direction_array[8]
+    cdef int j_neighbor_end_index, d8_dir_sum
+    cdef float d8_direction_array[8]
 
     cdef queue[pair[int, int]] work_queue
     cdef _ManagedRaster et0_m_raster, qf_m_raster, kc_m_raster
@@ -561,9 +561,9 @@ cpdef calculate_local_recharge(
                     # otherwise
                     upstream_defined = 1
                     # initialize to 0 so we indicate we haven't tracked any
-                    # mfd values yet
+                    # d8 values yet
                     j_neighbor_end_index = 0
-                    mfd_dir_sum = 0
+                    d8_dir_sum = 0
                     for n_dir in xrange(8):
                         if not upstream_defined:
                             break
@@ -579,7 +579,7 @@ cpdef calculate_local_recharge(
                         p_ij_base = (<int>flow_raster.get(xj, yj) ==
                             FLOW_DIR_REVERSE_DIRECTION[n_dir])
                         if p_ij_base:
-                            mfd_dir_sum += p_ij_base
+                            d8_dir_sum += p_ij_base
                             # pixel flows inward, check upstream
                             l_sum_avail_j = target_l_sum_avail_raster.get(
                                 xj, yj)
@@ -589,11 +589,11 @@ cpdef calculate_local_recharge(
                             l_avail_j = target_li_avail_raster.get(
                                 xj, yj)
                             # A step of Equation 7
-                            mfd_direction_array[j_neighbor_end_index] = (
+                            d8_direction_array[j_neighbor_end_index] = (
                                 l_sum_avail_j + l_avail_j) * p_ij_base
                             j_neighbor_end_index += 1
                     # calculate l_sum_avail_i by summing all the valid
-                    # directions then normalizing by the sum of the mfd
+                    # directions then normalizing by the sum of the d8
                     # direction weights (Equation 8)
                     if upstream_defined:
                         l_sum_avail_i = 0.0
@@ -602,8 +602,8 @@ cpdef calculate_local_recharge(
                             # we can have no upstream, and then why would we
                             # divide?
                             for index in range(j_neighbor_end_index):
-                                l_sum_avail_i += mfd_direction_array[index]
-                            l_sum_avail_i /= <float>mfd_dir_sum
+                                l_sum_avail_i += d8_direction_array[index]
+                            l_sum_avail_i /= <float>d8_dir_sum
                         target_l_sum_avail_raster.set(xi, yi, l_sum_avail_i)
                     else:
                         # if not defined, we'll get it on another pass
@@ -707,7 +707,7 @@ def route_baseflow_sum(
     cdef int stream_val, outlet
     cdef float b_i, b_sum_i, l_j, l_avail_j, l_sum_j
     cdef int xi, yi, xj, yj, flow_dir_i, p_ij_base
-    cdef int mfd_dir_sum, flow_dir_nodata
+    cdef int d8_dir_sum, flow_dir_nodata
     cdef int raster_x_size, raster_y_size, xs_root, ys_root, xoff, yoff
     cdef int n_dir
     cdef int xs, ys, flow_dir_s, win_xsize, win_ysize
@@ -790,7 +790,7 @@ def route_baseflow_sum(
                                 raster_x_size * raster_y_size))
 
                     b_sum_i = 0.0
-                    mfd_dir_sum = 0
+                    d8_dir_sum = 0
                     downstream_defined = 1
                     flow_dir_i = <int>flow_dir_d8_raster.get(xi, yi)
                     if flow_dir_i == flow_dir_nodata:
@@ -806,7 +806,7 @@ def route_baseflow_sum(
                         p_ij_base = (
                             flow_dir_i == FLOW_DIR_REVERSE_DIRECTION[n_dir])
                         if p_ij_base:
-                            mfd_dir_sum += p_ij_base
+                            d8_dir_sum += p_ij_base
                             xj = xi+NEIGHBOR_OFFSET_ARRAY[2*n_dir]
                             yj = yi+NEIGHBOR_OFFSET_ARRAY[2*n_dir+1]
                             if (xj < 0 or xj >= raster_x_size or
@@ -835,9 +835,9 @@ def route_baseflow_sum(
                     if not downstream_defined:
                         continue
                     l_sum_i = l_sum_raster.get(xi, yi)
-                    if mfd_dir_sum > 0:
-                        # normalize by mfd weight
-                        b_sum_i = l_sum_i * b_sum_i / <float>mfd_dir_sum
+                    if d8_dir_sum > 0:
+                        # normalize by d8 weight
+                        b_sum_i = l_sum_i * b_sum_i / <float>d8_dir_sum
                     target_b_sum_raster.set(xi, yi, b_sum_i)
                     l_i = l_raster.get(xi, yi)
                     if l_sum_i != 0:
