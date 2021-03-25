@@ -370,7 +370,7 @@ cdef class _ManagedRaster:
 
 
 cpdef calculate_local_recharge(
-        precip_path_list, et0_path_list, qf_m_path_list, flow_dir_mfd_path,
+        precip_path_list, et0_path_list, qf_m_path_list, flow_dir_d8_path,
         kc_path_list, alpha_month_map, float beta_i, float gamma, stream_path,
         target_li_path, target_li_avail_path, target_l_sum_avail_path,
         target_aet_path):
@@ -386,7 +386,7 @@ cpdef calculate_local_recharge(
         et0_path_list (list): path to monthly ET0 rasters. (model input)
         qf_m_path_list (list): path to monthly quickflow rasters calculated by
             Equation [1].
-        flow_dir_mfd_path (str): path to a PyGeoprocessing Multiple Flow
+        flow_dir_d8_path (str): path to a PyGeoprocessing Multiple Flow
             Direction raster indicating flow directions for this analysis.
         alpha_month_map (dict): fraction of upslope annual available recharge
             that is available in month m (indexed from 1).
@@ -435,15 +435,15 @@ cpdef calculate_local_recharge(
     cdef time_t last_log_time
     last_log_time = ctime(NULL)
 
-    # we know the PyGeoprocessing MFD raster flow dir type is a 32 bit int.
-    flow_dir_raster_info = pygeoprocessing.get_raster_info(flow_dir_mfd_path)
+    # we know the PyGeoprocessing D8 raster flow dir type is an 8-bit int
+    flow_dir_raster_info = pygeoprocessing.get_raster_info(flow_dir_d8_path)
     flow_dir_nodata = flow_dir_raster_info['nodata'][0]
     raster_x_size, raster_y_size = flow_dir_raster_info['raster_size']
-    cdef _ManagedRaster flow_raster = _ManagedRaster(flow_dir_mfd_path, 1, 0)
+    cdef _ManagedRaster flow_raster = _ManagedRaster(flow_dir_d8_path, 1, 0)
 
     # make sure that user input nodata values are defined
     # set to -1 if not defined
-    # precipitation and evapotranspiration data should 
+    # precipitation and evapotranspiration data should
     # always be non-negative
     et0_m_raster_list = []
     et0_m_nodata_list = []
@@ -479,32 +479,32 @@ cpdef calculate_local_recharge(
 
     target_nodata = -1e32
     pygeoprocessing.new_raster_from_base(
-        flow_dir_mfd_path, target_li_path, gdal.GDT_Float32, [target_nodata],
+        flow_dir_d8_path, target_li_path, gdal.GDT_Float32, [target_nodata],
         fill_value_list=[target_nodata])
     cdef _ManagedRaster target_li_raster = _ManagedRaster(
         target_li_path, 1, 1)
 
     pygeoprocessing.new_raster_from_base(
-        flow_dir_mfd_path, target_li_avail_path, gdal.GDT_Float32,
+        flow_dir_d8_path, target_li_avail_path, gdal.GDT_Float32,
         [target_nodata], fill_value_list=[target_nodata])
     cdef _ManagedRaster target_li_avail_raster = _ManagedRaster(
         target_li_avail_path, 1, 1)
 
     pygeoprocessing.new_raster_from_base(
-        flow_dir_mfd_path, target_l_sum_avail_path, gdal.GDT_Float32,
+        flow_dir_d8_path, target_l_sum_avail_path, gdal.GDT_Float32,
         [target_nodata], fill_value_list=[target_nodata])
     cdef _ManagedRaster target_l_sum_avail_raster = _ManagedRaster(
         target_l_sum_avail_path, 1, 1)
 
     pygeoprocessing.new_raster_from_base(
-        flow_dir_mfd_path, target_aet_path, gdal.GDT_Float32, [target_nodata],
+        flow_dir_d8_path, target_aet_path, gdal.GDT_Float32, [target_nodata],
         fill_value_list=[target_nodata])
     cdef _ManagedRaster target_aet_raster = _ManagedRaster(
         target_aet_path, 1, 1)
 
 
     for offset_dict in pygeoprocessing.iterblocks(
-            (flow_dir_mfd_path, 1), offset_only=True, largest_block=0):
+            (flow_dir_d8_path, 1), offset_only=True, largest_block=0):
         win_xsize = offset_dict['win_xsize']
         win_ysize = offset_dict['win_ysize']
         xoff = offset_dict['xoff']
@@ -539,8 +539,7 @@ cpdef calculate_local_recharge(
                             yj < 0 or yj >= raster_y_size):
                         continue
                     flow_dir_j = <int>flow_raster.get(xj, yj)
-                    if (0xF & (flow_dir_j >> (
-                            4 * FLOW_DIR_REVERSE_DIRECTION[n_dir]))):
+                    if (flow_dir_j == FLOW_DIR_REVERSE_DIRECTION[n_dir]):
                         # pixel flows inward, not a peak
                         peak_pixel = 0
                         break
@@ -577,8 +576,8 @@ cpdef calculate_local_recharge(
                         if (xj < 0 or xj >= raster_x_size or
                                 yj < 0 or yj >= raster_y_size):
                             continue
-                        p_ij_base = (<int>flow_raster.get(xj, yj) >> (
-                                4 * FLOW_DIR_REVERSE_DIRECTION[n_dir])) & 0xF
+                        p_ij_base = (<int>flow_raster.get(xj, yj) ==
+                            FLOW_DIR_REVERSE_DIRECTION[n_dir])
                         if p_ij_base:
                             mfd_dir_sum += p_ij_base
                             # pixel flows inward, check upstream
@@ -665,9 +664,9 @@ cpdef calculate_local_recharge(
                     target_li_raster.set(xi, yi, l_i)
                     target_li_avail_raster.set(xi, yi, l_avail_i)
 
-                    flow_dir_mfd = <int>flow_raster.get(xi, yi)
+                    flow_dir_d8 = <int>flow_raster.get(xi, yi)
                     for i_n in range(8):
-                        if ((flow_dir_mfd >> (i_n * 4)) & 0xF) == 0:
+                        if flow_dir_d8 != i_n:
                             # no flow in that direction
                             continue
                         xi_n = xi+NEIGHBOR_OFFSET_ARRAY[2*i_n]
@@ -679,12 +678,12 @@ cpdef calculate_local_recharge(
 
 
 def route_baseflow_sum(
-        flow_dir_mfd_path, l_path, l_avail_path, l_sum_path,
+        flow_dir_d8_path, l_path, l_avail_path, l_sum_path,
         stream_path, target_b_path, target_b_sum_path):
     """Route Baseflow through MFD as described in Equation 11.
 
     Args:
-        flow_dir_mfd_path (string): path to a pygeoprocessing multiple flow
+        flow_dir_d8_path (string): path to a pygeoprocessing multiple flow
             direction raster.
         l_path (string): path to local recharge raster.
         l_avail_path (string): path to local recharge raster that shows
@@ -716,17 +715,17 @@ def route_baseflow_sum(
     cdef stack[pair[int, int]] work_stack
 
     # we know the PyGeoprocessing MFD raster flow dir type is a 32 bit int.
-    flow_dir_raster_info = pygeoprocessing.get_raster_info(flow_dir_mfd_path)
+    flow_dir_raster_info = pygeoprocessing.get_raster_info(flow_dir_d8_path)
     flow_dir_nodata = flow_dir_raster_info['nodata'][0]
     raster_x_size, raster_y_size = flow_dir_raster_info['raster_size']
 
     stream_nodata = pygeoprocessing.get_raster_info(stream_path)['nodata'][0]
 
     pygeoprocessing.new_raster_from_base(
-        flow_dir_mfd_path, target_b_sum_path, gdal.GDT_Float32,
+        flow_dir_d8_path, target_b_sum_path, gdal.GDT_Float32,
         [target_nodata], fill_value_list=[target_nodata])
     pygeoprocessing.new_raster_from_base(
-        flow_dir_mfd_path, target_b_path, gdal.GDT_Float32,
+        flow_dir_d8_path, target_b_path, gdal.GDT_Float32,
         [target_nodata], fill_value_list=[target_nodata])
 
     cdef _ManagedRaster target_b_sum_raster = _ManagedRaster(
@@ -736,14 +735,14 @@ def route_baseflow_sum(
     cdef _ManagedRaster l_raster = _ManagedRaster(l_path, 1, 0)
     cdef _ManagedRaster l_avail_raster = _ManagedRaster(l_avail_path, 1, 0)
     cdef _ManagedRaster l_sum_raster = _ManagedRaster(l_sum_path, 1, 0)
-    cdef _ManagedRaster flow_dir_mfd_raster = _ManagedRaster(
-        flow_dir_mfd_path, 1, 0)
+    cdef _ManagedRaster flow_dir_d8_raster = _ManagedRaster(
+        flow_dir_d8_path, 1, 0)
 
     cdef _ManagedRaster stream_raster = _ManagedRaster(stream_path, 1, 0)
 
     current_pixel = 0
     for offset_dict in pygeoprocessing.iterblocks(
-            (flow_dir_mfd_path, 1), offset_only=True, largest_block=0):
+            (flow_dir_d8_path, 1), offset_only=True, largest_block=0):
         win_xsize = offset_dict['win_xsize']
         win_ysize = offset_dict['win_ysize']
         xoff = offset_dict['xoff']
@@ -754,13 +753,13 @@ def route_baseflow_sum(
             ys_root = yoff+ys
             for xs in xrange(win_xsize):
                 xs_root = xoff+xs
-                flow_dir_s = <int>flow_dir_mfd_raster.get(xs_root, ys_root)
+                flow_dir_s = <int>flow_dir_d8_raster.get(xs_root, ys_root)
                 if flow_dir_s == flow_dir_nodata:
                     current_pixel += 1
                     continue
                 outlet = 1
                 for n_dir in xrange(8):
-                    if (flow_dir_s >> (n_dir * 4)) & 0xF:
+                    if flow_dir_s == n_dir:
                         # flows in this direction
                         xj = xs_root+NEIGHBOR_OFFSET_ARRAY[2*n_dir]
                         yj = ys_root+NEIGHBOR_OFFSET_ARRAY[2*n_dir+1]
@@ -793,7 +792,7 @@ def route_baseflow_sum(
                     b_sum_i = 0.0
                     mfd_dir_sum = 0
                     downstream_defined = 1
-                    flow_dir_i = <int>flow_dir_mfd_raster.get(xi, yi)
+                    flow_dir_i = <int>flow_dir_d8_raster.get(xi, yi)
                     if flow_dir_i == flow_dir_nodata:
                         LOGGER.error("flow dir nodata? this makes no sense")
                         continue
@@ -804,7 +803,8 @@ def route_baseflow_sum(
                         # 321
                         # 4x0
                         # 567
-                        p_ij_base = (flow_dir_i >> (4*n_dir)) & 0xF
+                        p_ij_base = (
+                            flow_dir_i == FLOW_DIR_REVERSE_DIRECTION[n_dir])
                         if p_ij_base:
                             mfd_dir_sum += p_ij_base
                             xj = xi+NEIGHBOR_OFFSET_ARRAY[2*n_dir]
@@ -857,8 +857,7 @@ def route_baseflow_sum(
                         if (xj < 0 or xj >= raster_x_size or
                                 yj < 0 or yj >= raster_y_size):
                             continue
-                        flow_dir_j = <int>flow_dir_mfd_raster.get(xj, yj)
-                        if (0xF & (flow_dir_j >> (
-                                4 * FLOW_DIR_REVERSE_DIRECTION[n_dir]))):
+                        flow_dir_j = <int>flow_dir_d8_raster.get(xj, yj)
+                        if (flow_dir_j == FLOW_DIR_REVERSE_DIRECTION[n_dir]):
                             # pixel flows here, push on queue
                             work_stack.push(pair[int, int](xj, yj))

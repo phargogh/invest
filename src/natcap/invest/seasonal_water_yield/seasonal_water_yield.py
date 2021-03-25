@@ -16,6 +16,7 @@ import taskgraph
 from .. import utils
 from .. import validation
 
+from natcap.invest.delineateit import delineateit
 from . import seasonal_water_yield_core
 
 gdal.SetCacheMax(2**26)
@@ -374,10 +375,11 @@ def execute(args):
     # during debugging and think it makes sense to have in production of this
     # model too.
     try:
-        warnings.filterwarnings('error')
+        # warnings.filterwarnings('error')
         _execute(args)
     finally:
-        warnings.resetwarnings()
+        # warnings.resetwarnings()
+        pass
 
 
 def _execute(args):
@@ -549,7 +551,7 @@ def _execute(args):
             (file_registry['dem_pit_filled_path'], 1),
             file_registry['flow_dir_d8_path']),
         kwargs={'working_dir': cache_dir},
-        target_path_list=[file_registry['flow_dir__path']],
+        target_path_list=[file_registry['flow_dir_d8_path']],
         dependent_task_list=[fill_pit_task],
         task_name='flow dir d8')
 
@@ -563,9 +565,9 @@ def _execute(args):
         task_name='flow accum task')
 
     stream_threshold_task = task_graph.add_task(
-        func=pygeoprocessing.routing.extract_streams_d8,
+        func=_threshold_streams_d8,
         args=(
-            (file_registry['flow_accum_path'], 1),
+            file_registry['flow_accum_path'],
             threshold_flow_accumulation,
             file_registry['stream_path']),
         target_path_list=[file_registry['stream_path']],
@@ -1195,10 +1197,8 @@ def _calculate_l_avail(l_path, gamma, target_l_avail_path):
 
 def _threshold_streams_d8(flow_accum_path, threshold_flow_accumulation,
                           target_path):
-    from natcap.invest.delineateit import delineateit
     flow_accumulation_nodata = pygeoprocessing.get_raster_info(
         flow_accum_path)['nodata'][0]
-    flow_dir_nodata = pygeoprocessing.get_raster_info(flow_dir_d8)['nodata'][0]
 
     out_nodata = 255  # match mfd streams nodata
 
