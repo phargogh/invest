@@ -344,6 +344,10 @@ jobs:
                     requirements.txt requirements-dev.txt \
                     requirements-gui.txt > requirements-all.yml
                   conda env update --file requirements-all.yml
+
+                  # Explicitly build wheel with known python before installation.
+                  # Gets around subprocess not necessarily using correct python.
+                  python -m build --wheel
                   make install
 
             - name: Run UI tests
