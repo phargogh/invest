@@ -335,7 +335,7 @@ jobs:
                   channels: conda-forge
 
             - name: Install dependencies
-              shell: bash -l {0}
+              shell: bash -x -l {0}
               run: |
                   conda install nomkl  # make sure numpy w/out mkl
                   conda install requests
