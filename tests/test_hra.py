@@ -463,7 +463,7 @@ class HraUnitTests(unittest.TestCase):
 
         expected_message = 'The following stressor-habitat pair(s)'
         actual_message = str(cm.exception)
-        self.assertTrue(expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_unknown_criteria_from_criteria_csv(self):
         """HRA: exception raised with unknown criteria from criteria CSV."""
@@ -484,7 +484,7 @@ class HraUnitTests(unittest.TestCase):
 
         expected_message = 'The "extra criteria" criteria does not belong to '
         actual_message = str(cm.exception)
-        self.assertTrue(expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_missing_index_from_criteria_csv(self):
         """HRA: correct error msg when missing indexes from criteria CSV."""
@@ -503,8 +503,7 @@ class HraUnitTests(unittest.TestCase):
             'The Criteria table is missing the following '
             'value(s) in the first column:')
         actual_message = str(cm.exception)
-        self.assertTrue(
-            expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_missing_criteria_header_from_criteria_csv(self):
         """HRA: correct error msg when missing indexes from criteria CSV."""
@@ -522,8 +521,7 @@ class HraUnitTests(unittest.TestCase):
 
         expected_message = 'missing the column header "CRITERIA TYPE"'
         actual_message = str(cm.exception)
-        self.assertTrue(
-            expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_criteria_excel_file(self):
         """HRA: test excel files read correctly by _get_criteria_dataframe."""
@@ -596,7 +594,7 @@ class HraUnitTests(unittest.TestCase):
 
         expected_message = 'Missing column header(s) from the Info CSV file:'
         actual_message = str(cm.exception)
-        self.assertTrue(expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_wrong_layer_type_in_info_csv(self):
         """HRA: exception raised when layer type is wrong info CSV."""
@@ -616,8 +614,7 @@ class HraUnitTests(unittest.TestCase):
 
         expected_message = "is having ['wrong type']"
         actual_message = str(cm.exception)
-        self.assertTrue(
-            expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_wrong_buffer_in_info_csv(self):
         """HRA: exception raised when buffers are not number in info CSV."""
@@ -637,8 +634,7 @@ class HraUnitTests(unittest.TestCase):
 
         expected_message = "should be a number for stressors"
         actual_message = str(cm.exception)
-        self.assertTrue(
-            expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_wrong_criteria_type_type(self):
         """HRA: exception raised when type is not C or E from criteria CSV."""
@@ -662,7 +658,7 @@ class HraUnitTests(unittest.TestCase):
 
         expected_message = 'Criteria Type in the criteria scores table'
         actual_message = str(cm.exception)
-        self.assertTrue(expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_wrong_weight_from_criteria_csv(self):
         """HRA: exception raised when weight is not a number from CSV."""
@@ -686,7 +682,7 @@ class HraUnitTests(unittest.TestCase):
         expected_message = (
             'Weight column for habitat "habitat_0" and stressor "stressor_1"')
         actual_message = str(cm.exception)
-        self.assertTrue(expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_large_rating_from_criteria_csv(self):
         """HRA: exception raised when rating is larger than maximum rating."""
@@ -709,7 +705,7 @@ class HraUnitTests(unittest.TestCase):
 
         expected_message = 'rating 99999 larger than the maximum rating 3'
         actual_message = str(cm.exception)
-        self.assertTrue(expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_to_abspath(self):
         """HRA: test exception raised in _to_abspath function."""
@@ -720,7 +716,7 @@ class HraUnitTests(unittest.TestCase):
 
         expected_message = 'does not exist.'
         actual_message = str(cm.exception)
-        self.assertTrue(expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_to_abspath_change_separators(self):
         """HRA: should replace backslashes with forward slashes on posix"""
@@ -1031,7 +1027,7 @@ class HraRegressionTests(unittest.TestCase):
 
         expected_message = 'Dataset must have a valid projection'
         actual_message = str(cm.exception)
-        self.assertTrue(expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_layer_without_spatial_ref(self):
         """HRA: test habitats and stressors w/out spatial references."""
@@ -1052,7 +1048,7 @@ class HraRegressionTests(unittest.TestCase):
 
         expected_message = "The following layer does not have a spatial"
         actual_message = str(cm.exception)
-        self.assertTrue(expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_non_projected_layers(self):
         """HRA: test habitat and stressor layers that are not projected."""
@@ -1094,7 +1090,7 @@ class HraRegressionTests(unittest.TestCase):
 
         expected_message = "The following layer does not have a spatial"
         actual_message = str(cm.exception)
-        self.assertTrue(expected_message in actual_message, actual_message)
+        self.assertIn(expected_message, actual_message)
 
     def test_unmatched_layer_names(self):
         """HRA: testing unmatched layer names between info and criteria CSV."""
@@ -1120,7 +1116,7 @@ class HraRegressionTests(unittest.TestCase):
             expected_message = (
                 "missing from the criteria table: ['" + missing_layer)
             actual_message = str(cm.exception)
-            self.assertTrue(expected_message in actual_message, actual_message)
+            self.assertIn(expected_message, actual_message)
 
     def test_invalid_args(self):
         """HRA: testing invalid arguments."""
@@ -1150,8 +1146,7 @@ class HraRegressionTests(unittest.TestCase):
         actual_message = str(cm.exception)
 
         for invalid_parameter in expected_invalid_parameters:
-            self.assertTrue(
-                invalid_parameter in actual_message, actual_message)
+            self.assertIn(invalid_parameter, actual_message)
 
     def test_missing_args(self):
         """HRA: testing invalid arguments."""
@@ -1200,7 +1195,7 @@ class HraRegressionTests(unittest.TestCase):
         expected_error = (
             ['max_rating'],
             validation.MESSAGES['INVALID_VALUE'].format(condition='value > 0'))
-        self.assertTrue(expected_error in validation_error_list)
+        self.assertIn(expected_error, validation_error_list)
 
     def test_validate_negative_resolution(self):
         """HRA: testing validation w/ negative value in resolution in args."""
@@ -1213,4 +1208,4 @@ class HraRegressionTests(unittest.TestCase):
         expected_error = (
             ['resolution'],
             validation.MESSAGES['INVALID_VALUE'].format(condition='value > 0'))
-        self.assertTrue(expected_error in validation_error_list)
+        self.assertIn(expected_error, validation_error_list)
