@@ -50,9 +50,6 @@ _TARGET_PIXEL_INT = gdal.GDT_Byte
 _TARGET_NODATA_FLT = float(numpy.finfo(numpy.float32).min)
 _TARGET_NODATA_INT = 255  # for unsigned 8-bit int
 
-# ESPG code for warping rasters to WGS84 coordinate system.
-_WGS84_ESPG_CODE = 4326
-
 # Resampling method for rasters.
 _RESAMPLE_METHOD = 'near'
 
@@ -905,7 +902,7 @@ def execute(args):
     # Convert the rasters to GeoJSON files in WGS84 for web visualization,
     # since only this format would be recognized by leaflet
     wgs84_sr = osr.SpatialReference()
-    wgs84_sr.ImportFromEPSG(_WGS84_ESPG_CODE)
+    wgs84_sr.ImportFromEPSG(4326)  # WGS84
     wgs84_wkt = wgs84_sr.ExportToWkt()
     for out_raster_path in out_raster_paths:
         # Get raster basename without file extension and remove prefix
