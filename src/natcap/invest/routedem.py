@@ -1,20 +1,19 @@
 """RouteDEM for exposing the natcap.invest's routing package to UI."""
-import os
 import logging
+import os
 
-from osgeo import gdal
+import numpy
 import pygeoprocessing
 import pygeoprocessing.routing
 import taskgraph
-import numpy
+from osgeo import gdal
 
-from . import utils
+from . import gettext
 from . import spec_utils
-from .spec_utils import u
+from . import utils
 from . import validation
 from .model_metadata import MODEL_METADATA
-from . import gettext
-
+from .spec_utils import u
 
 LOGGER = logging.getLogger(__name__)
 
@@ -90,6 +89,56 @@ ARGS_SPEC = {
                 "defined in the Calculate Streams output."),
             "name": gettext("calculate distance to stream")
         },
+        "calculate_strahler_streams": {
+            "type": "boolean",
+            "required": False,
+            "about": gettext(
+                "Derive the Strahler stream network from D8 flow direction."),
+            "name": gettext("calculate strahler stream network"),
+        },
+        "strahler_min_threshold_flow_accumulation": {
+            **spec_utils.THRESHOLD_FLOW_ACCUMULATION,
+            "required": False,
+            "about": gettext(
+                f"{spec_utils.THRESHOLD_FLOW_ACCUMULATION['about']} "
+                "Required if calculating the Strahler stream network. "
+                "This is the minimum number of upstream pixels required to "
+                "create a stream.  The final flow accumulation value may be "
+                "adjusted if the threshold flow accumulation will be "
+                "statistically autotuned."
+            )
+        },
+        "strahler_min_p_val": {
+            "type": "number",
+            "required": False,
+            "units": u.none,
+            "name": gettext("strahler streams: minimum p-value"),
+            "about": gettext(
+                "The minimum p-value in a statistical test for significance "
+                "of whether there is a new stream.")
+        },
+        "strahler_river_order": {
+            "type": "number",
+            "required": False,
+            "units": u.none,
+            "name": gettext("strahler streams: river order"),
+            "about": gettext(
+                "The stream order to define as a river when "
+                "automatically determining the flow accumulation "
+                "threshold for a given stream collection.")
+        },
+        "strahler_autotune_threshold_flow_accumulation": {
+            "type": "boolean",
+            "required": False,
+            "name": gettext(
+                "strahler streams: autotune threshold flow accumulation"),
+            "about": gettext(
+                "If true, use a statistical t-test to test for "
+                "significant distances in order 1 and order 2 streams. "
+                "If a distance is significant, the Strahler threshold "
+                "flow accumulation parameter is adjusted upwards until "
+                "the drop distances are insignificant.")
+        },
         "calculate_slope": {
             "type": "boolean",
             "required": False,
@@ -107,6 +156,7 @@ _TARGET_FLOW_DIRECTION_FILE_PATTERN = 'flow_direction%s.tif'
 _FLOW_ACCUMULATION_FILE_PATTERN = 'flow_accumulation%s.tif'
 _STREAM_MASK_FILE_PATTERN = 'stream_mask%s.tif'
 _DOWNSLOPE_DISTANCE_FILE_PATTERN = 'downslope_distance%s.tif'
+_STRAHLER_STREAMS_PATTERN = 'strahler_streams%s.gpkg'
 
 _ROUTING_FUNCS = {
     'D8': {
@@ -337,6 +387,37 @@ def execute(args):
                         target_path_list=[distance_path],
                         task_name='downslope_distance_%s' % algorithm,
                         dependent_task_list=[stream_threshold_task])
+
+    if algorithm == 'D8' and all([
+            args.get('calculate_strahler_streams', False),
+            args.get('calculate_flow_direction', False),
+            args.get('calculate_flow_accumulation', False)]):
+        strahler_streams_path = os.path.join(
+            args['workspace_dir'], _STRAHLER_STREAMS_PATTERN % file_suffix)
+        min_flow_accum_threshold = float(args.get(
+            'strahler_min_threshold_flow_accumulation', 100))
+        river_order = float(args.get('strahler_river_order', 5.0))
+        min_p_val = float(args.get('strahler_min_p_val', 0.05))
+        autotune_flow_accumulation = args.get(
+            'strahler_autotune_threshold_flow_accumulation', False)
+        strahler_streams_task = graph.add_task(
+            pygeoprocessing.routing.extract_strahler_streams_d8,
+            kwargs={
+                'flow_dir_d8_raster_path_band': (flow_dir_path, 1),
+                'flow_accum_raster_path_band': (flow_accumulation_path, 1),
+                'dem_raster_path_band': (dem_filled_pits_path, 1),
+                'target_stream_vector_path': strahler_streams_path,
+                'min_flow_accum_threshold': min_flow_accum_threshold,
+                'river_order': river_order,
+                'min_p_val': min_p_val,
+                'autotune_flow_accumulation': autotune_flow_accumulation,
+            },
+            target_path_list=[strahler_streams_path],
+            dependent_task_list=[
+                flow_direction_task, flow_accum_task, filled_pits_task],
+            task_name='Calculate strahler streams'
+        )
+
     graph.join()
 
 

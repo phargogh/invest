@@ -1,8 +1,9 @@
 # coding=UTF-8
 
-from natcap.invest.ui import model, inputs
-from natcap.invest.model_metadata import MODEL_METADATA
 from natcap.invest import routedem
+from natcap.invest.model_metadata import MODEL_METADATA
+from natcap.invest.ui import inputs
+from natcap.invest.ui import model
 
 
 class RouteDEM(model.InVESTModel):
@@ -13,6 +14,8 @@ class RouteDEM(model.InVESTModel):
             target=routedem.execute,
             validator=routedem.validate,
             localdoc=MODEL_METADATA['routedem'].userguide)
+
+        args_definitions = routedem.ARGS_SPEC['args']
 
         self.dem_path = inputs.File(
             args_key='dem_path',
@@ -85,6 +88,21 @@ class RouteDEM(model.InVESTModel):
             label='Calculate Distance to stream')
         self.add_input(self.calculate_downslope_distance)
 
+        self.calculate_strahler_streams = inputs.Checkbox(
+            args_key='calculate_strahler_streams',
+            helptext=args_definitions['calculate_strahler_streams']['about'],
+            interactive=False,
+            label=args_definitions['calculate_strahler_streams']['name']
+        )
+        self.add_input(self.calculate_strahler_streams)
+
+        self.strahler_options = inputs.Container(
+            'Strahler Streams: Advanced',
+            interactive=False,
+            expandable=False,
+            expanded=True)
+        self.add_input(self.strahler_options)
+
         # Set interactivity, requirement as input sufficiency changes
         self.calculate_flow_direction.sufficiency_changed.connect(
             self.calculate_flow_accumulation.set_interactive)
@@ -94,6 +112,19 @@ class RouteDEM(model.InVESTModel):
             self.threshold_flow_accumulation.set_interactive)
         self.calculate_stream_threshold.sufficiency_changed.connect(
             self.calculate_downslope_distance.set_interactive)
+        #self.calculate_flow_accumulation.sufficiency_changed.connect(
+        #    self.calculate_strahler_streams.set_interactive)
+        self.algorithm.value_changed.connect(self._set_strahler_sufficiency)
+        self.calculate_flow_accumulation.sufficiency_changed.connect(
+            self._set_strahler_sufficiency)
+        self.calculate_strahler_streams.sufficiency_changed.connect(
+            self.strahler_options.set_interactive)
+
+    def _set_strahler_sufficiency(self, sufficiency_or_value=None):
+        interactive = self.calculate_flow_accumulation.sufficient
+        if self.algorithm.value() != 'D8':
+            interactive = False
+        self.calculate_strahler_streams.set_interactive(interactive)
 
     def assemble_args(self):
         args = {
@@ -113,5 +144,7 @@ class RouteDEM(model.InVESTModel):
                 self.threshold_flow_accumulation.value(),
             self.calculate_downslope_distance.args_key:
                 self.calculate_downslope_distance.value(),
+            self.calculate_strahler_streams.args_key:
+                self.calculate_strahler_streams.value(),
         }
         return args
