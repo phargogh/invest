@@ -354,8 +354,12 @@ $(WINDOWS_INSTALLER_FILE): $(INVEST_BINARIES_DIR) $(USERGUIDE_ZIP_FILE) build/vc
 	-$(RM) $(WINDOWS_INSTALLER_FILE)
 	makensis /DVERSION=$(VERSION) /DBINDIR=$(INVEST_BINARIES_DIR) /DARCHITECTURE=$(PYTHON_ARCH) /DFORKNAME=$(INSTALLER_NAME_FORKUSER) /DDATA_LOCATION=$(DATA_BASE_URL) installer\windows\invest_installer.nsi
 
+create-dmg:
+	wget https://raw.githubusercontent.com/phargogh/create-dmg/master/create-dmg
+	chmod u+x create-dmg
+
 mac_dmg: $(MAC_DISK_IMAGE_FILE)
-$(MAC_DISK_IMAGE_FILE): $(DIST_DIR) $(MAC_APPLICATION_BUNDLE) $(USERGUIDE_TARGET_DIR)
+$(MAC_DISK_IMAGE_FILE): $(DIST_DIR) $(MAC_APPLICATION_BUNDLE) $(USERGUIDE_TARGET_DIR) create-dmg
 	# everything in the source directory $(MAC_APPLICATION_BUNDLE_DIR) will be copied into the DMG.
 	# so that directory should only contain the app bundle.
 	create-dmg \
