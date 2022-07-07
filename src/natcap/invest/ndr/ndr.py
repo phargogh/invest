@@ -11,15 +11,14 @@ import taskgraph
 from osgeo import gdal
 from osgeo import ogr
 
-from ..model_metadata import MODEL_METADATA
+from .. import gettext
 from .. import spec_utils
 from .. import utils
 from .. import validation
+from ..model_metadata import MODEL_METADATA
 from ..sdr import sdr
 from ..spec_utils import u
-from .. import gettext
 from . import ndr_core
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -205,6 +204,8 @@ _INTERMEDIATE_BASE_FILES = {
     'eff_p_path': 'eff_p.tif',
     'effective_retention_n_path': 'effective_retention_n.tif',
     'effective_retention_p_path': 'effective_retention_p.tif',
+    'effective_retention_n_opt_path': 'effective_retention_n_opt.tif',
+    'effective_retention_p_opt_path': 'effective_retention_p_opt.tif',
     'flow_accumulation_path': 'flow_accumulation.tif',
     'flow_direction_path': 'flow_direction.tif',
     'thresholded_slope_path': 'thresholded_slope.tif',
@@ -590,12 +591,16 @@ def execute(args):
 
         effective_retention_path = (
             f_reg[f'effective_retention_{nutrient}_path'])
+        effective_retention_option_path = (
+            f_reg[f'effective_retention_{nutrient}_opt_path'])
         ndr_eff_task = task_graph.add_task(
             func=ndr_core.ndr_eff_calculation,
             args=(
                 f_reg['flow_direction_path'],
                 f_reg['stream_path'], eff_path,
-                crit_len_path, effective_retention_path),
+                crit_len_path, effective_retention_path,
+                effective_retention_option_path
+            ),
             target_path_list=[effective_retention_path],
             dependent_task_list=[
                 stream_extraction_task, eff_task, crit_len_task],

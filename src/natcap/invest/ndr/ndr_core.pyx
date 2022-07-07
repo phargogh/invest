@@ -352,7 +352,8 @@ cdef class _ManagedRaster:
 
 def ndr_eff_calculation(
         mfd_flow_direction_path, stream_path, retention_eff_lulc_path,
-        crit_len_path, effective_retention_path):
+        crit_len_path, effective_retention_path,
+        effective_retention_option_path):
     """Calculate flow downhill effective_retention to the channel.
 
         Args:
@@ -370,6 +371,13 @@ def ndr_eff_calculation(
             effective_retention_path (string): path to a raster that is
                 created by this call that contains a per-pixel effective
                 sediment retention to the stream.
+            effective_retention_option_path (string): path to a raster created
+                by this function containing a value indicating the selected
+                effective retention:
+
+                    * 1 if eff'_i = eff_LULC_i*(1-S_i)
+                    * 2 if eff'_i = eff'_down_i*S_i+eff_LULC_i*(1-S_i)
+                    * 3 if eff'_1 = eff'_down_i
 
         Returns:
             None.
@@ -425,6 +433,12 @@ def ndr_eff_calculation(
     cdef _ManagedRaster to_process_flow_directions_raster = _ManagedRaster(
         to_process_flow_directions_path, 1, True)
 
+    pygeoprocessing.new_raster_from_base(
+        mfd_flow_direction_path, effective_retention_option_path,
+        gdal.GDT_Byte, [255], [255])
+    cdef _ManagedRaster opt_raster = _ManagedRaster(
+        effective_retention_option_path, 1, True)
+
     cdef int col_index, row_index, win_xsize, win_ysize, xoff, yoff
     cdef int global_col, global_row
     cdef int flat_index, outflow_weight, outflow_weight_sum, flow_dir
@@ -433,6 +447,7 @@ def ndr_eff_calculation(
     cdef int neighbor_row, neighbor_col, neighbor_outflow_dir
     cdef int neighbor_outflow_dir_mask, neighbor_process_flow_dir
     cdef int outflow_dirs, dir_mask
+    cdef int selected_option
 
     for offset_dict in pygeoprocessing.iterblocks(
             (mfd_flow_direction_path, 1), offset_only=True, largest_block=0):
@@ -545,6 +560,8 @@ def ndr_eff_calculation(
                     working_retention_eff /= float(outflow_weight_sum)
                     effective_retention_raster.set(
                         global_col, global_row, working_retention_eff)
+                    opt_raster.set(
+                        global_col, global_row, selected_option)
                 else:
                     LOGGER.error('outflow_weight_sum %s', outflow_weight_sum)
                     raise Exception("got to a cell that has no outflow!")
