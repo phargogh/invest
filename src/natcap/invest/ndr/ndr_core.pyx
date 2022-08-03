@@ -433,6 +433,9 @@ def ndr_eff_calculation(
     cdef _ManagedRaster to_process_flow_directions_raster = _ManagedRaster(
         to_process_flow_directions_path, 1, True)
 
+    if not os.path.exists(effective_retention_option_dir):
+        os.makedirs(effective_retention_option_dir)
+
     eff_ret_opt_1_path = os.path.join(effective_retention_option_dir,
                                       'option_1.tif')
     eff_ret_opt_2_path = os.path.join(effective_retention_option_dir,

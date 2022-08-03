@@ -204,8 +204,6 @@ _INTERMEDIATE_BASE_FILES = {
     'eff_p_path': 'eff_p.tif',
     'effective_retention_n_path': 'effective_retention_n.tif',
     'effective_retention_p_path': 'effective_retention_p.tif',
-    'effective_retention_n_opt_path': 'effective_retention_n_opt.tif',
-    'effective_retention_p_opt_path': 'effective_retention_p_opt.tif',
     'flow_accumulation_path': 'flow_accumulation.tif',
     'flow_direction_path': 'flow_direction.tif',
     'thresholded_slope_path': 'thresholded_slope.tif',
@@ -591,17 +589,23 @@ def execute(args):
 
         effective_retention_path = (
             f_reg[f'effective_retention_{nutrient}_path'])
-        effective_retention_option_path = (
-            f_reg[f'effective_retention_{nutrient}_opt_path'])
+        bitmasks_dir = os.path.join(
+            intermediate_output_dir,
+            f'{nutrient}_eq_41_options_bitmasks{file_suffix}')
         ndr_eff_task = task_graph.add_task(
             func=ndr_core.ndr_eff_calculation,
             args=(
                 f_reg['flow_direction_path'],
                 f_reg['stream_path'], eff_path,
                 crit_len_path, effective_retention_path,
-                effective_retention_option_path
+                bitmasks_dir
             ),
-            target_path_list=[effective_retention_path],
+            target_path_list=[
+                effective_retention_path,
+                os.path.join(bitmasks_dir, 'option_1.tif'),
+                os.path.join(bitmasks_dir, 'option_2.tif'),
+                os.path.join(bitmasks_dir, 'option_3.tif'),
+            ],
             dependent_task_list=[
                 stream_extraction_task, eff_task, crit_len_task],
             task_name=f'eff ret {nutrient}')
