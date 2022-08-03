@@ -353,7 +353,7 @@ cdef class _ManagedRaster:
 def ndr_eff_calculation(
         mfd_flow_direction_path, stream_path, retention_eff_lulc_path,
         crit_len_path, effective_retention_path,
-        effective_retention_option_path):
+        effective_retention_option_dir):
     """Calculate flow downhill effective_retention to the channel.
 
         Args:
@@ -371,9 +371,9 @@ def ndr_eff_calculation(
             effective_retention_path (string): path to a raster that is
                 created by this call that contains a per-pixel effective
                 sediment retention to the stream.
-            effective_retention_option_path (string): path to a raster created
-                by this function containing a value indicating the selected
-                effective retention:
+            effective_retention_option_dir (string): path to a directory created
+                by this function containing 3 rasters with values indicating
+                the selected effective retention:
 
                     * 1 if eff'_i = eff_LULC_i*(1-S_i)
                     * 2 if eff'_i = eff'_down_i*S_i+eff_LULC_i*(1-S_i)
@@ -433,11 +433,24 @@ def ndr_eff_calculation(
     cdef _ManagedRaster to_process_flow_directions_raster = _ManagedRaster(
         to_process_flow_directions_path, 1, True)
 
-    pygeoprocessing.new_raster_from_base(
-        mfd_flow_direction_path, effective_retention_option_path,
-        gdal.GDT_Byte, [255], [255])
-    cdef _ManagedRaster opt_raster = _ManagedRaster(
-        effective_retention_option_path, 1, True)
+    eff_ret_opt_1_path = os.path.join(effective_retention_option_dir,
+                                      'option_1.tif')
+    eff_ret_opt_2_path = os.path.join(effective_retention_option_dir,
+                                      'option_2.tif')
+    eff_ret_opt_3_path = os.path.join(effective_retention_option_dir,
+                                      'option_3.tif')
+    for raster_path in (eff_ret_opt_1_path,
+                        eff_ret_opt_2_path,
+                        eff_ret_opt_3_path):
+        pygeoprocessing.new_raster_from_base(
+            mfd_flow_direction_path, raster_path, gdal.GDT_Byte, [255])
+
+    cdef _ManagedRaster opt_1_raster = _ManagedRaster(
+        eff_ret_opt_1_path, 1, True)
+    cdef _ManagedRaster opt_2_raster = _ManagedRaster(
+        eff_ret_opt_2_path, 1, True)
+    cdef _ManagedRaster opt_3_raster = _ManagedRaster(
+        eff_ret_opt_3_path, 1, True)
 
     cdef int col_index, row_index, win_xsize, win_ysize, xoff, yoff
     cdef int global_col, global_row
