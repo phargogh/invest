@@ -377,7 +377,7 @@ def ndr_eff_calculation(
 
                     * 1 if eff'_i = eff_LULC_i*(1-S_i)
                     * 2 if eff'_i = eff'_down_i*S_i+eff_LULC_i*(1-S_i)
-                    * 3 if eff'_1 = eff'_down_i
+                    * 3 if eff'_i = eff'_down_i
 
         Returns:
             None.
@@ -439,11 +439,15 @@ def ndr_eff_calculation(
                                       'option_2.tif')
     eff_ret_opt_3_path = os.path.join(effective_retention_option_dir,
                                       'option_3.tif')
+    cdef int opt_raster_nodata = -1
     for raster_path in (eff_ret_opt_1_path,
                         eff_ret_opt_2_path,
                         eff_ret_opt_3_path):
+        # This raster (a bitmask) must be a longer datatype in order to support
+        # a nodata value that can't be represented by 8 bits.
         pygeoprocessing.new_raster_from_base(
-            mfd_flow_direction_path, raster_path, gdal.GDT_Byte, [255])
+            mfd_flow_direction_path, raster_path, gdal.GDT_Int16,
+            [opt_raster_nodata], [0])
 
     cdef _ManagedRaster opt_1_raster = _ManagedRaster(
         eff_ret_opt_1_path, 1, True)
@@ -523,6 +527,7 @@ def ndr_eff_calculation(
                     global_col, global_row)
             if stream_raster.get(global_col, global_row) == 1:
                 # if it's a stream effective retention is 0.
+                # option rasters are already filled with 0; no need to set here.
                 effective_retention_raster.set(global_col, global_row, 0)
             elif (is_close(crit_len, crit_len_nodata) or
                   is_close(retention_eff_lulc, retention_eff_nodata) or
@@ -530,9 +535,15 @@ def ndr_eff_calculation(
                 # if it's nodata, effective retention is nodata.
                 effective_retention_raster.set(
                     global_col, global_row, effective_retention_nodata)
+                opt_1_raster.set(global_col, global_row, opt_raster_nodata)
+                opt_2_raster.set(global_col, global_row, opt_raster_nodata)
+                opt_3_raster.set(global_col, global_row, opt_raster_nodata)
             else:
                 working_retention_eff = 0.0
                 outflow_weight_sum = 0
+                eff_prime_i_opt_1 = 0
+                eff_prime_i_opt_2 = 0
+                eff_prime_i_opt_3 = 0
                 for i in range(8):
                     outflow_weight = (flow_dir >> (i*4)) & 0xF
                     if outflow_weight == 0:
@@ -557,24 +568,60 @@ def ndr_eff_calculation(
 
                     neighbor_effective_retention = (
                         effective_retention_raster.get(ds_col, ds_row))
-                    if neighbor_effective_retention >= retention_eff_lulc:
-                        working_retention_eff += (
-                            neighbor_effective_retention) * outflow_weight
-                    else:
+
+                    # Case 1: downstream neighbor is a stream pixel
+                    if neighbor_effective_retention == 0:
                         intermediate_retention = (
-                            (neighbor_effective_retention *
-                             current_step_factor) +
-                            retention_eff_lulc * (1 - current_step_factor))
-                        if intermediate_retention > retention_eff_lulc:
-                            intermediate_retention = retention_eff_lulc
-                        working_retention_eff += (
-                            intermediate_retention * outflow_weight)
+                            retention_eff_lulc * ( 1 - current_step_factor))
+                        opt_1_raster.set(
+                            global_col, global_row,
+                            <int>opt_1_raster.get(global_col, global_row) & (1 << i))
+
+                    # Case 2: the current LULC's retention exceeds the neighbor's retention.
+                    elif retention_eff_lulc > neighbor_effective_retention:
+                        intermediate_retention = (
+                            (neighbor_effective_retention * current_step_factor) +
+                            (retention_eff_lulc * (1 - current_step_factor)))
+                        opt_2_raster.set(
+                            global_col, global_row,
+                            <int>opt_2_raster.get(global_col, global_row) & (1 << i))
+
+                    # Case 3: the other 2 cases have not been hit.
+                    else:
+                        intermediate_retention = neighbor_effective_retention
+                        opt_3_raster.set(
+                            global_col, global_row,
+                            <int>opt_3_raster.get(global_col, global_row) & (1 << i))
+
+                    working_retention_eff += intermediate_retention * outflow_weight
+
+                    # Below is the original 3.11 version of the code.
+                    # This is byte-for-byte (confirmed by md5sum) the same as
+                    # what I have above, but the above more closely matches the
+                    # user's guide.
+                    #
+                    #neighbor_effective_retention = (
+                    #    effective_retention_raster.get(ds_col, ds_row))
+                    #if neighbor_effective_retention >= retention_eff_lulc:
+                    #    # Case 1.
+                    #    working_retention_eff += neighbor_effective_retention * outflow_weight
+                    #else:
+                    #    # retention_eff_lulc           is eff'_LULC_i in UG
+                    #    # neighbor_effective_retention is eff'_down_i in UG
+                    #    # current_step_factor          is S_i in UG
+                    #    #
+                    #    # This is case 2
+                    #    intermediate_retention = (
+                    #        (neighbor_effective_retention * current_step_factor) +
+                    #        retention_eff_lulc * (1 - current_step_factor))
+                    #    if intermediate_retention > retention_eff_lulc:
+                    #        intermediate_retention = retention_eff_lulc
+                    #    working_retention_eff += (
+                    #        intermediate_retention * outflow_weight)
                 if outflow_weight_sum > 0:
                     working_retention_eff /= float(outflow_weight_sum)
                     effective_retention_raster.set(
                         global_col, global_row, working_retention_eff)
-                    opt_raster.set(
-                        global_col, global_row, selected_option)
                 else:
                     LOGGER.error('outflow_weight_sum %s', outflow_weight_sum)
                     raise Exception("got to a cell that has no outflow!")
