@@ -575,7 +575,7 @@ def ndr_eff_calculation(
                             retention_eff_lulc * ( 1 - current_step_factor))
                         opt_1_raster.set(
                             global_col, global_row,
-                            <int>opt_1_raster.get(global_col, global_row) & (1 << i))
+                            <int>opt_1_raster.get(global_col, global_row) | (1 << i))
 
                     # Case 2: the current LULC's retention exceeds the neighbor's retention.
                     elif retention_eff_lulc > neighbor_effective_retention:
@@ -584,14 +584,14 @@ def ndr_eff_calculation(
                             (retention_eff_lulc * (1 - current_step_factor)))
                         opt_2_raster.set(
                             global_col, global_row,
-                            <int>opt_2_raster.get(global_col, global_row) & (1 << i))
+                            <int>opt_2_raster.get(global_col, global_row) | (1 << i))
 
                     # Case 3: the other 2 cases have not been hit.
                     else:
                         intermediate_retention = neighbor_effective_retention
                         opt_3_raster.set(
                             global_col, global_row,
-                            <int>opt_3_raster.get(global_col, global_row) & (1 << i))
+                            <int>opt_3_raster.get(global_col, global_row) | (1 << i))
 
                     working_retention_eff += intermediate_retention * outflow_weight
 
@@ -654,4 +654,7 @@ def ndr_eff_calculation(
                     # pick it up
                     processing_stack.push(neighbor_row*n_cols + neighbor_col)
     to_process_flow_directions_raster.close()
+    opt_1_raster.close()
+    opt_2_raster.close()
+    opt_3_raster.close()
     os.remove(to_process_flow_directions_path)
