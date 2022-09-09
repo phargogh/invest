@@ -830,18 +830,9 @@ def _json_to_shp_table(
         None
 
     """
-    driver = gdal.GetDriverByName('ESRI Shapefile')
-    if os.path.exists(predictor_vector_path):
-        driver.Delete(predictor_vector_path)
-    response_vector = gdal.OpenEx(
-        response_vector_path, gdal.OF_VECTOR | gdal.GA_Update)
-    # We can resize this because the model guarantees the predictor vector will
-    # be an ESRI Shapefile.
-    layer_name = os.path.basename(os.path.splitext(predictor_vector_path)[0])
-    response_vector.ExecuteSQL(f'RESIZE {layer_name}')
-    predictor_vector = driver.CreateCopy(
-        predictor_vector_path, response_vector)
-    response_vector = None
+    utils.copy_vector(response_vector_path, predictor_vector_path)
+    predictor_vector = gdal.OpenEx(
+        predictor_vector_path, gdal.OF_VECTOR | gdal.GA_Update)
 
     layer = predictor_vector.GetLayer()
     layer_defn = layer.GetLayerDefn()

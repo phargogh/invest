@@ -1,6 +1,7 @@
 """InVEST specific code utils."""
 import codecs
 import contextlib
+import glob
 import logging
 import math
 import os
@@ -976,3 +977,47 @@ def matches_format_string(test_string, format_string):
     if re.fullmatch(pattern, test_string):
         return True
     return False
+
+
+def copy_vector(source_vector_path, target_vector_path,
+                target_driver_name='ESRI Shapefile', working_dir=None):
+    source_vector = gdal.OpenEx(
+        source_vector_path, gdal.OF_VECTOR | gdal.GA_ReadOnly)
+    source_driver = source_vector.GetDriver()
+    temp_dir = None
+    if (source_driver.LongName == 'ESRI Shapefile' and
+            target_driver_name == 'ESRI Shapefile'):
+        temp_dir = tempfile.mkdtemp(
+            prefix='copy-vector-', dir=working_dir)
+        layer_name = os.path.basename(os.path.splitext(source_vector_path)[0])
+
+        # Copying files manually to circumvent GDAL errors with field sizes.
+        source_vector_dir = os.path.dirname(source_vector_path)
+        for source_filepath in glob.glob(
+                os.path.join(source_vector_dir, f'{layer_name}.*')):
+            dest_filepath = os.path.join(
+                temp_dir, os.path.basename(source_filepath))
+            shutil.copyfile(source_filepath, dest_filepath)
+
+        temp_vector_path = os.path.join(temp_dir, f'{layer_name}.shp')
+        temp_vector = gdal.OpenEx(
+            temp_vector_path, gdal.OF_VECTOR | gdal.GA_Update)
+        temp_vector.ExecuteSQL(f'RESIZE {layer_name}')
+        temp_vector = None
+
+        # Reopen the new vector from the resized location
+        source_vector = gdal.OpenEx(
+            temp_vector_path, gdal.OF_VECTOR | gdal.GA_ReadOnly)
+
+    driver = gdal.GetDriverByName(target_driver_name)
+    if os.path.exists(target_vector_path):
+        driver.Delete(target_vector_path)
+
+    target_vector = driver.CreateCopy(target_vector_path, source_vector)
+
+    if temp_dir is not None:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+    source_vector = None
+    target_vector = None
+    driver = None
