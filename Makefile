@@ -133,7 +133,7 @@ MAC_APPLICATION_BUNDLE_DIR := $(BUILD_DIR)/mac_app_$(VERSION)
 MAC_APPLICATION_BUNDLE := $(MAC_APPLICATION_BUNDLE_DIR)/$(MAC_APPLICATION_BUNDLE_NAME)
 
 
-.PHONY: fetch install binaries apidocs userguide windows_installer mac_dmg sampledata sampledata_single test test_ui clean help check python_packages jenkins purge mac_zipfile deploy codesign_mac codesign_windows $(GIT_SAMPLE_DATA_REPO_PATH) $(GIT_TEST_DATA_REPO_PATH) $(GIT_UG_REPO_REV)
+.PHONY: fetch install binaries apidocs userguide windows_installer mac_dmg sampledata sampledata_single test test_ui clean help check python_packages jenkins purge mac_zipfile deploy codesign_mac codesign_windows $(GIT_SAMPLE_DATA_REPO_PATH) $(GIT_TEST_DATA_REPO_PATH) $(GIT_UG_REPO_REV) docker
 
 # Very useful for debugging variables!
 # $ make print-FORKNAME, for example, would print the value of the variable $(FORKNAME)
@@ -405,6 +405,9 @@ deploy:
 	-$(GSUTIL) -m rsync -r $(WORKBENCH_DIST_DIR) $(DIST_URL_BASE)/workbench
 	@echo "Application binaries (if they were created) can be downloaded from:"
 	@echo "  * $(DOWNLOAD_DIR_URL)"
+
+docker:
+	docker build --file docker/Dockerfile .
 
 # Notes on Makefile development
 #

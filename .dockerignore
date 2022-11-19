@@ -1,0 +1,9 @@
+# .dockerignore
+node_modules
+env39
+env310
+data
+dist
+build
+doc
+tags

@@ -1,0 +1,13 @@
+name: base
+channels:
+    - conda-forge
+dependencies:
+    - python=3.10
+    - gdal
+    - pygeoprocessing
+    - setuptools_scm
+    - pandas
+    - taskgraph
+    - cxx-compiler
+    - python-build
+    - git
