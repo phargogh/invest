@@ -1,9 +1,12 @@
 """InVEST specific code utils."""
 import codecs
 import contextlib
+import hashlib
+import importlib
 import logging
 import math
 import os
+import pprint
 import re
 import shutil
 import tempfile
@@ -13,6 +16,7 @@ from datetime import datetime
 import numpy
 import pandas
 import pygeoprocessing
+import requests
 from osgeo import gdal
 from osgeo import osr
 from shapely.wkt import loads
@@ -1104,3 +1108,110 @@ def matches_format_string(test_string, format_string):
     if re.fullmatch(pattern, test_string):
         return True
     return False
+
+
+GDAL_URI_SERVICE_MAPPINGS = {
+    'http://': '/vsicurl/http://',
+    'https://': '/vsicurl/https://',
+    'ftp://': '/vsicurl/ftp://',
+    'gs://': '/vsigs/',
+    # could include more here, in accordance with GDAL available VSIs
+}
+
+
+def download_file(source_url, target_file):
+    LOGGER.info(f"Downloading {source_url} to {target_file}")
+    try:
+        expected_fsize = int(requests.head(
+            source_url).headers['content-length'])
+    except KeyError:
+        # When there's no `content-length` header
+        expected_fsize = None
+
+    downloaded_fsize = 0
+    last_time = time.time()
+    with requests.get(source_url, stream=True) as req:
+        req.raise_for_status()
+        with open(target_file, 'wb') as target:
+            for chunk in req.iter_content(chunk_size=8192):
+                if time.time() >= last_time + 5.0:
+                    last_time = time.time()
+                    if expected_fsize:
+                        percent = (downloaded_fsize / expected_fsize) * 100
+                        LOGGER.info(
+                            f"{downloaded_fsize} / {expected_fsize} "
+                            f"({percent}%) downloaded of {source_url} ")
+                    else:
+                        # When we don't know the expected filesize, just give a
+                        # download-so-far progress report.
+                        LOGGER.info(f"{downloaded_fsize} downloaded so far "
+                                    f"from {source_url}")
+                downloaded_fsize += len(chunk)
+                target.write(chunk)
+    LOGGER.info(f"Download finished: {target_file}")
+
+
+def _handle_urls(execute_func):
+    args_spec = importlib.import_module(
+        execute_func.__module__).ARGS_SPEC['args']
+
+    def _inner(args_dict):
+        local_cache_dir = os.path.join(
+            args_dict['workspace_dir'], '.remote-file-cache')
+        if not os.path.exists(local_cache_dir):
+            os.makedirs(local_cache_dir)
+
+        new_args = args_dict.copy()
+        for key, value in args_dict.items():
+            # value might be None or ''; skip if so
+            # A URL must be a string
+            if not value or not isinstance(value, str):
+                continue
+
+            # Hash the URL. Assumes URL will change if the data change.
+            sha = hashlib.sha256()
+            sha.update(value.encode('UTF-8'))
+            digest = sha.hexdigest()
+
+            if (args_spec[key]['type'] in {'csv', 'vector', 'file'} and
+                    value.startswith(('http://', 'https://', 'ftp://'))):
+                file_suffix = os.path.splitext(value)[1]
+                local_file = os.path.join(
+                    local_cache_dir, f'{key}_{digest}{file_suffix}')
+                download_file(value, local_file)
+                new_args[key] = local_file
+                continue
+
+            # If the URL has a known protocol prefix, use the corresponding
+            # virtual filesystem
+            for prefix, vsi_replacement in GDAL_URI_SERVICE_MAPPINGS.items():
+                # Use the original value if possible
+                if not value.startswith(prefix):
+                    continue
+
+                try:
+                    new_vsi_path = re.sub(
+                        f'^{prefix}', vsi_replacement, value)
+                except KeyError:
+                    continue
+
+                local_vrt_path = os.path.join(
+                    local_cache_dir, f'{key}_{digest}.vrt')
+                new_args[key] = local_vrt_path
+                ret_val = gdal.BuildVRT(local_vrt_path, new_vsi_path)
+                if not isinstance(ret_val, gdal.Dataset):
+                    LOGGER.info("Falling back to direct download: gdal could "
+                                f"not build a VRT for {value}")
+                    # if the file cannot be added to a VRT (which happens
+                    # during testing if the webserver does not support range
+                    # downloading), just download the file.
+                    file_suffix = os.path.splitext(value)[1]
+                    local_file = os.path.join(
+                        local_cache_dir, f'{key}_{digest}{file_suffix}')
+                    download_file(value, local_file)
+                    new_args[key] = local_file
+                continue
+
+        LOGGER.info(pprint.pformat(new_args))
+        return execute_func(new_args)
+    return _inner

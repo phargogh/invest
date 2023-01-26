@@ -6,17 +6,17 @@ import os
 import time
 from functools import reduce
 
-from osgeo import gdal
 import numpy
 import pygeoprocessing
 import taskgraph
+from osgeo import gdal
 
-from . import validation
-from . import utils
-from . import spec_utils
-from .spec_utils import u
-from .model_metadata import MODEL_METADATA
 from . import gettext
+from . import spec_utils
+from . import utils
+from . import validation
+from .model_metadata import MODEL_METADATA
+from .spec_utils import u
 
 LOGGER = logging.getLogger(__name__)
 
@@ -211,6 +211,7 @@ _CARBON_NODATA = -1.0
 _VALUE_NODATA = float(numpy.finfo(numpy.float32).min)
 
 
+@utils._handle_urls
 def execute(args):
     """Carbon.
 
