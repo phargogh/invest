@@ -9,6 +9,7 @@ import time
 
 import numpy
 import pygeoprocessing
+import pygeoprocessing.kernels
 import rtree
 import shapely.prepared
 import shapely.wkb
@@ -1394,8 +1395,11 @@ def convolve_2d_by_exponential(
         dir=os.path.dirname(target_convolve_raster_path))
     exponential_kernel_path = os.path.join(
         temporary_working_dir, 'exponential_decay_kernel.tif')
-    utils.exponential_decay_kernel_raster(
-        decay_kernel_distance, exponential_kernel_path)
+    pygeoprocessing.kernels.exponential_decay_kernel(
+        exponential_kernel_path,
+        expected_distance=decay_kernel_distance,
+        max_distance=decay_kernel_distance*5)
+
     pygeoprocessing.convolve_2d(
         (signal_raster_path, 1), (exponential_kernel_path, 1),
         target_convolve_raster_path, working_dir=temporary_working_dir,

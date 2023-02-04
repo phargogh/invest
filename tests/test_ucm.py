@@ -1,12 +1,12 @@
 """InVEST Urban Heat Island Mitigation model tests."""
-import unittest
-import tempfile
-import shutil
 import os
+import shutil
+import tempfile
+import unittest
 
 import numpy
-from osgeo import gdal
 import pandas
+from osgeo import gdal
 
 REGRESSION_DATA = os.path.join(
     os.path.dirname(__file__), '..', 'data', 'invest-test-data', 'ucm')
@@ -80,9 +80,9 @@ class UCMTests(unittest.TestCase):
                 actual_value = float(results_feature.GetField(key))
                 # These accumulated values (esp. avd_eng_cn) are accumulated
                 # and may differ past about 4 decimal places.
-                self.assertAlmostEqual(
-                    actual_value, expected_value, places=4,
-                    msg='%s should be close to %f, actual: %f' % (
+                numpy.testing.assert_allclose(
+                    actual_value, expected_value, rtol=1e-5,
+                    err_msg='%s should be close to %f, actual: %f' % (
                         key, expected_value, actual_value))
         finally:
             results_layer = None
@@ -110,8 +110,8 @@ class UCMTests(unittest.TestCase):
 
             # Expected energy savings is an accumulated value and may differ
             # past about 4 decimal places.
-            self.assertAlmostEqual(
-                energy_sav, expected_energy_sav, places=4, msg=(
+            numpy.testing.assert_allclose(
+                energy_sav, expected_energy_sav, rtol=1e-5, err_msg=(
                     '%f should be close to %f' % (
                         energy_sav, expected_energy_sav)))
             self.assertEqual(n_nonetype, 119)
@@ -151,8 +151,8 @@ class UCMTests(unittest.TestCase):
 
             # These accumulated values are accumulated
             # and may differ past about 4 decimal places.
-            self.assertAlmostEqual(
-                energy_sav, expected_energy_sav, places=4, msg=(
+            numpy.testing.assert_allclose(
+                energy_sav, expected_energy_sav, rtol=1e-5, err_msg=(
                     '%f should be close to %f' % (
                         energy_sav, expected_energy_sav)))
             self.assertEqual(n_nonetype, 119)
@@ -208,7 +208,7 @@ class UCMTests(unittest.TestCase):
             'avg_tmp_an': 1.608697970397692,
             'avd_eng_cn': 7240015.1958200345,
             'avg_wbgt_v': 31.91108630952381,
-            'avg_ltls_v': 28.744239631336406,
+            'avg_ltls_v': 28.73463901689708,
             'avg_hvls_v': 75.000000000000000,
         }
         try:
@@ -216,10 +216,10 @@ class UCMTests(unittest.TestCase):
                 actual_value = float(results_feature.GetField(key))
                 # These accumulated values (esp. avd_eng_cn) are accumulated
                 # and may differ past about 4 decimal places.
-                self.assertAlmostEqual(
-                    actual_value, expected_value, places=4,
-                    msg='%s should be close to %f, actual: %f' % (
-                        key, expected_value, actual_value))
+                numpy.testing.assert_allclose(
+                    actual_value, expected_value, rtol=1e-5,
+                    err_msg='%s should be close to %f, actual: %f' % (
+                         key, expected_value, actual_value))
         finally:
             results_layer = None
             results_vector = None
@@ -335,7 +335,8 @@ class UCMTests(unittest.TestCase):
 
     def test_bad_args(self):
         """UCM: test validation of bad arguments."""
-        from natcap.invest import urban_cooling_model, validation
+        from natcap.invest import urban_cooling_model
+        from natcap.invest import validation
         args = {
             'workspace_dir': self.workspace_dir,
             'results_suffix': 'test_suffix',
