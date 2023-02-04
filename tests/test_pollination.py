@@ -1,14 +1,14 @@
 """Module for Regression Testing the InVEST Pollination model."""
-import numpy
-import unittest
-import tempfile
-import shutil
 import os
+import shutil
+import tempfile
+import unittest
 
+import numpy
 import pygeoprocessing
+import shapely.geometry
 from osgeo import ogr
 from osgeo import osr
-import shapely.geometry
 
 REGRESSION_DATA = os.path.join(
     os.path.dirname(__file__), '..', 'data', 'invest-test-data', 'pollination')
@@ -83,8 +83,8 @@ class PollinationTests(unittest.TestCase):
         pollination.execute(args)
         expected_farm_yields = {
             'blueberry': {
-                'y_tot': 0.44934792607,
-                'y_wild': 0.09934792607
+                'y_tot': 0.46837888735,
+                'y_wild': 0.11837888735,
             },
         }
         result_vector = ogr.Open(
@@ -192,7 +192,7 @@ class PollinationTests(unittest.TestCase):
             result_sum += numpy.sum(data_block)
         # the number below is just what the sum rounded to two decimal places
         # when I manually inspected a run that appeared to be correct.
-        self.assertAlmostEqual(result_sum, 58.669518, places=2)
+        self.assertAlmostEqual(result_sum, 58.472626, places=2)
 
     def test_pollination_constant_abundance(self):
         """Pollination: regression testing when abundance is all 1."""
@@ -217,7 +217,7 @@ class PollinationTests(unittest.TestCase):
             result_sum += numpy.sum(data_block)
         # the number below is just what the sum rounded to two decimal places
         # when I manually inspected a run that appeared to be correct.
-        self.assertAlmostEqual(result_sum, 68.44777, places=2)
+        self.assertAlmostEqual(result_sum, 68.218056, places=2)
 
     def test_pollination_bad_guild_headers(self):
         """Pollination: testing that model detects bad guild headers."""
@@ -275,8 +275,8 @@ class PollinationTests(unittest.TestCase):
 
     def test_pollination_missing_lulc_values(self):
         """Pollination: testing that model detects missing lulc values."""
-        from natcap.invest import pollination
         import pandas
+        from natcap.invest import pollination
 
         temp_path = tempfile.mkdtemp(dir=self.workspace_dir)
 

@@ -1,25 +1,25 @@
 """Pollinator service model for InVEST."""
-import itertools
 import collections
-import re
-import os
-import logging
 import hashlib
 import inspect
+import itertools
+import logging
+import os
+import re
 
+import numpy
+import pygeoprocessing
+import pygeoprocessing.kernels
+import taskgraph
 from osgeo import gdal
 from osgeo import ogr
-import pygeoprocessing
-import numpy
-import taskgraph
 
-from . import utils
+from . import gettext
 from . import spec_utils
-from .spec_utils import u
+from . import utils
 from . import validation
 from .model_metadata import MODEL_METADATA
-from . import gettext
-
+from .spec_utils import u
 
 LOGGER = logging.getLogger(__name__)
 
@@ -622,8 +622,11 @@ def execute(args):
 
         alpha_kernel_raster_task = task_graph.add_task(
             task_name=f'decay_kernel_raster_{alpha}',
-            func=utils.exponential_decay_kernel_raster,
-            args=(alpha, kernel_path),
+            func=pygeoprocessing.kernels.exponential_decay_kernel,
+            kwargs={
+                'target_kernel_path': kernel_path,
+                'max_distance': alpha * 5,
+            },
             target_path_list=[kernel_path])
 
         # convolve FE with alpha_s

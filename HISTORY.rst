@@ -44,6 +44,10 @@ Unreleased Changes
 * Workbench
     * Added tooltips to the model tabs so that they can be identified even when
       several tabs are open (`#1071 <https://github.com/natcap/invest/issues/1088>`_)
+* Pollination
+    * Fixed a bug where the weights kernel used in calculating exponential
+      decay could be off by one pixel, resulting in slightly incorrect weights
+      being applied for some alphas.  The off-by-one issue has been addressed.
 
 3.12.1 (2022-12-16)
 -------------------
