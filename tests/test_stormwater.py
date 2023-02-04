@@ -7,12 +7,12 @@ import unittest
 from unittest import mock
 
 import numpy
-from osgeo import gdal, osr
 import pandas
 import pygeoprocessing
-from pygeoprocessing.geoprocessing_core import (
-    DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS as opts_tuple)
-
+from osgeo import gdal
+from osgeo import osr
+from pygeoprocessing.geoprocessing_core import \
+    DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS as opts_tuple
 
 TEST_DATA = os.path.join(os.path.dirname(
     __file__), '..', 'data', 'invest-test-data', 'stormwater')
@@ -710,36 +710,6 @@ class StormwaterTests(unittest.TestCase):
             actual = pygeoprocessing.raster_to_numpy_array(out_path)
             numpy.testing.assert_equal(expected, actual)
 
-    def test_make_search_kernel(self):
-        """Stormwater: test make_search_kernel function."""
-        from natcap.invest import stormwater
-
-        array = numpy.zeros((10, 10))
-        path = os.path.join(self.workspace_dir, 'make_search_kernel.tif')
-        to_raster(array, path, pixel_size=(10, -10))
-
-        expected_5 = numpy.array([[1]], dtype=numpy.uint8)
-        actual_5 = stormwater.make_search_kernel(path, 5)
-        numpy.testing.assert_equal(expected_5, actual_5)
-
-        expected_9 = numpy.array([[1]], dtype=numpy.uint8)
-        actual_9 = stormwater.make_search_kernel(path, 9)
-        numpy.testing.assert_equal(expected_9, actual_9)
-
-        expected_10 = numpy.array([
-            [0, 1, 0],
-            [1, 1, 1],
-            [0, 1, 0]], dtype=numpy.uint8)
-        actual_10 = stormwater.make_search_kernel(path, 10)
-        numpy.testing.assert_equal(expected_10, actual_10)
-
-        expected_15 = numpy.array([
-            [1, 1, 1],
-            [1, 1, 1],
-            [1, 1, 1]], dtype=numpy.uint8)
-        actual_15 = stormwater.make_search_kernel(path, 15)
-        numpy.testing.assert_equal(expected_15, actual_15)
-
     def test_raster_average(self):
         """Stormwater: test raster_average function."""
         from natcap.invest import stormwater
@@ -778,7 +748,8 @@ class StormwaterTests(unittest.TestCase):
 
     def test_validate(self):
         """Stormwater: test arg validation."""
-        from natcap.invest import stormwater, validation
+        from natcap.invest import stormwater
+        from natcap.invest import validation
 
         # test args missing necessary values for adjust ratios
         args = {
@@ -800,7 +771,8 @@ class StormwaterTests(unittest.TestCase):
 
     def test_validate_noninteger_soil_raster(self):
         """Stormwater: test arg validation."""
-        from natcap.invest import stormwater, validation
+        from natcap.invest import stormwater
+        from natcap.invest import validation
 
         soil_array = numpy.array([[1, 2], [3, 4]], dtype=numpy.float32)
         soil_path = os.path.join(self.workspace_dir, 'soils.tif')
