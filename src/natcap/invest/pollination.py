@@ -626,6 +626,7 @@ def execute(args):
             kwargs={
                 'target_kernel_path': kernel_path,
                 'max_distance': alpha * 5,
+                'expected_distance': alpha,
             },
             target_path_list=[kernel_path])
 

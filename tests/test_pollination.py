@@ -83,8 +83,8 @@ class PollinationTests(unittest.TestCase):
         pollination.execute(args)
         expected_farm_yields = {
             'blueberry': {
-                'y_tot': 0.46837888735,
-                'y_wild': 0.11837888735,
+                'y_tot': 0.44770556644,
+                'y_wild': 0.09770556644,
             },
         }
         result_vector = ogr.Open(
@@ -192,7 +192,7 @@ class PollinationTests(unittest.TestCase):
             result_sum += numpy.sum(data_block)
         # the number below is just what the sum rounded to two decimal places
         # when I manually inspected a run that appeared to be correct.
-        self.assertAlmostEqual(result_sum, 58.472626, places=2)
+        self.assertAlmostEqual(result_sum, 58.407158, places=2)
 
     def test_pollination_constant_abundance(self):
         """Pollination: regression testing when abundance is all 1."""
@@ -217,7 +217,7 @@ class PollinationTests(unittest.TestCase):
             result_sum += numpy.sum(data_block)
         # the number below is just what the sum rounded to two decimal places
         # when I manually inspected a run that appeared to be correct.
-        self.assertAlmostEqual(result_sum, 68.218056, places=2)
+        self.assertAlmostEqual(result_sum, 68.14168, places=2)
 
     def test_pollination_bad_guild_headers(self):
         """Pollination: testing that model detects bad guild headers."""
