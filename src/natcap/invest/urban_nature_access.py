@@ -2126,21 +2126,22 @@ def _calculate_urban_nature_population_ratio(
         out_array = numpy.full(
             urban_nature_area.shape, FLOAT32_NODATA, dtype=numpy.float32)
 
-        # Small negative values should already have been filtered out in
-        # another function after the convolution.
-        # This avoids divide-by-zero errors when taking the ratio.
-        valid_pixels = (convolved_population > 0)
-
         # R_j is a ratio only calculated for the urban nature pixels.
-        urban_nature_pixels = ~numpy.isclose(urban_nature_area, 0)
-        valid_pixels &= urban_nature_pixels
-        if population_nodata is not None:
-            valid_pixels &= ~utils.array_equals_nodata(
-                convolved_population, population_nodata)
+        urban_nature_pixels = (
+            (urban_nature_area > 0) &
+            ~utils.array_equals_nodata(urban_nature_area, urban_nature_nodata))
 
-        if urban_nature_nodata is not None:
-            valid_pixels &= ~utils.array_equals_nodata(
-                urban_nature_area, urban_nature_nodata)
+        valid_pixels = (
+            # Small negative values in population should already have been
+            # filtered out in another function after the convolution.  This
+            # avoids divide-by-zero errors when taking the ratio.
+            (convolved_population > 0) &
+            (~utils.array_equals_nodata(
+                convolved_population, population_nodata)) &
+            (~utils.array_equals_nodata(
+                urban_nature_area, urban_nature_nodata)) &
+            urban_nature_pixels
+        )
 
         # The user's guide specifies that if the population in the search
         # radius is numerically 0, the urban nature/population ratio should be
@@ -2152,9 +2153,11 @@ def _calculate_urban_nature_population_ratio(
         # urban nature/population ratio would be set to the available urban
         # nature on that pixel.
         population_close_to_zero = (convolved_population <= 1.0)
-        out_array[population_close_to_zero] = (
-            urban_nature_area[population_close_to_zero])
-        out_array[~urban_nature_pixels] = 0
+        valid_population_close_to_zero = (
+            valid_pixels & population_close_to_zero)
+        out_array[valid_population_close_to_zero] = (
+            urban_nature_area[valid_population_close_to_zero])
+        out_array[valid_pixels & ~urban_nature_pixels] = 0
 
         valid_pixels_with_population = (
             valid_pixels & (~population_close_to_zero))
