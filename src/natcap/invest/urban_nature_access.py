@@ -2014,7 +2014,13 @@ def _write_supply_demand_vector(source_aoi_vector_path, feature_attrs,
     for feature in target_layer:
         feature_id = feature.GetFID()
         for attr_name, attr_value in feature_attrs[feature_id].items():
-            feature.SetField(attr_name, attr_value)
+            try:
+                feature.SetField(attr_name, attr_value)
+            except TypeError:
+                LOGGER.exception(
+                    f"Could not set attribute {attr_name} to {attr_value} "
+                    f"on supply-demand FID {feature_id}")
+                raise
 
         target_layer.SetFeature(feature)
     target_layer.CommitTransaction()
