@@ -2015,7 +2015,9 @@ def _write_supply_demand_vector(source_aoi_vector_path, feature_attrs,
         feature_id = feature.GetFID()
         for attr_name, attr_value in feature_attrs[feature_id].items():
             try:
-                feature.SetField(attr_name, attr_value)
+                # GDAL won't accept numpy float32 values, so avoid this
+                # possibility by casting to a float.
+                feature.SetField(attr_name, float(attr_value))
             except TypeError:
                 LOGGER.exception(
                     f"Could not set attribute {attr_name} to {attr_value} "
