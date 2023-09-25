@@ -18,7 +18,7 @@ Rtree>=0.8.2,!=0.9.1
 shapely>=1.7.1,<1.8.2  # https://github.com/shapely/shapely/issues/1385
 scipy>=1.9.0
 #pygeoprocessing==2.4.0  # pip-only
-git+https://github.com/natcap/pygeoprocessing.git@b0df880314a5e92c45a80bed9dbd12ec89f80234#egg=pygeoprocessing
+git+https://github.com/natcap/pygeoprocessing.git@b0df880314a5e92c45a80bed9dbd12ec89f80234#egg=pygeoprocessing # pip-only
 taskgraph[niced_processes]>=0.11.0  # pip-only
 psutil>=5.6.6
 chardet>=3.0.4
