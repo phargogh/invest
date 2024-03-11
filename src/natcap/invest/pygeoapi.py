@@ -53,41 +53,32 @@ PROCESS_METADATA = {
 }
 
 
-class HelloWorldProcessor(BaseProcessor):
-    """Hello World Processor example"""
+class CarbonProcessor(BaseProcessor):
+    """InVEST Carbon Model Processor"""
 
     def __init__(self, processor_def):
-        """
-        Initialize object
-
-        :param processor_def: provider definition
-
-        :returns: pygeoapi.process.hello_world.HelloWorldProcessor
-        """
-
         super().__init__(processor_def, PROCESS_METADATA)
 
     def execute(self, data):
+        args = {}
+        for key in carbon.MODEL_SPEC['args']:
+            try:
+                args[key] = data[key]
+            except KeyError:
+                LOGGER.debug(f"{key} not provided by user")
+                pass
 
-        mimetype = 'application/json'
-        name = data.get('name')
+        carbon.execute(args)
 
-        if name is None:
-            raise ProcessorExecuteError('Cannot process without a name')
-
-        message = data.get('message', '')
-        value = f'Hello {name}! {message}'.strip()
+        value = args['workspace_dir']
 
         outputs = {
             'id': 'results_url',
             'value': value
         }
 
+        mimetype = 'application/json'
         return mimetype, outputs
 
     def __repr__(self):
-        return f'<HelloWorldProcessor> {self.name}'
-
-
-class CarbonProcess:
-    pass
+        return f'<CarbonProcessor> {self.name}'
