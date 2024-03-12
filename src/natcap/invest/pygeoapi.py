@@ -14,7 +14,7 @@ for args_key, args_values in carbon.MODEL_SPEC['args'].items():
         'schema': {
             'type': 'string',
         },
-        'minOccurs': 1 if args_values['required'] is True else 0,
+        'minOccurs': 1 if args_values.get('required', True) is True else 0,
         'maxOccurs': 1,
         'keywords': []
     }
