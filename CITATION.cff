@@ -17,6 +17,7 @@ authors:
     website: 'https://naturalcapitalproject.stanford.edu'
 repository-code: 'https://github.com/natcap/invest'
 url: 'https://naturalcapitalproject.stanford.edu/software/invest'
+version: 3.14.1
 abstract: >-
   InVEST® is a suite of free, open-source software models
   used to map and value the goods and services from nature

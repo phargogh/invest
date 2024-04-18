@@ -65,6 +65,8 @@ Unreleased Changes
     * Add support for latest GDAL versions; remove test-specific constraint on
       GDAL versions from invest requirements.
       https://github.com/natcap/invest/issues/916
+    * A ``CITATION.cff`` file has been added to the repository root to
+      represent the citation. https://github.com/natcap/invest/issues/1548
 * Annual Water Yield
     * Added the results_suffix to a few intermediate files where it was
       missing. https://github.com/natcap/invest/issues/1517
