@@ -36,8 +36,8 @@
 .. :changelog:
 
 
-Unreleased Changes
-------------------
+3.14.2 (2024-05-23)
+-------------------
 * General
     * Validation now covers file paths contained in CSVs. CSV validation
       will fail if the files listed in a CSV fail to validate.
