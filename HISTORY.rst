@@ -36,7 +36,7 @@
 .. :changelog:
 
 
-3.14.2 (2024-05-23)
+3.14.2 (2024-05-28)
 -------------------
 * General
     * Validation now covers file paths contained in CSVs. CSV validation
