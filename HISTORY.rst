@@ -55,9 +55,10 @@
   1. Highlights
   2. General
   3. Workbench
-  4. InVEST model A
-  5. ...
-  6. InVEST model Z (model names should be sorted A-Z)
+  4. Plugins
+  5. InVEST model A
+  6. ...
+  7. InVEST model Z (model names should be sorted A-Z)
 
 
 Unreleased Changes
@@ -68,8 +69,17 @@ General
 * Fixed a bug where the ``invest`` CLI could raise a circular
   ``ImportError`` while trying to discover available plugins.
   (`#2012 <https://github.com/natcap/invest/issues/2012>`_).
+* Pull requests into the InVEST repository now verify that committers to
+  the PR have signed the InVEST Contributor License Agreement, with the results
+  viewable as a check alongside the tests that normally execute on GitHub
+  Actions. To review and sign the CLA, please visit https://natcap.github.io/invest-cla/.
+  (`#1593 <https://github.com/natcap/invest/issues/1593>`_)
 
-
+Plugins
+=======
+* The plugin package version is now queried programatically using
+  ``importlib`` rather than being read directly from the ``pyproject.toml``
+  (`#2025 <https://github.com/natcap/invest/issues/2025>`_).
 
 3.16.0 (2025-06-04)
 -------------------
