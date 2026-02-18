@@ -97,6 +97,8 @@ General
   were created during model setup, preventing correct creation of
   substituted output directories at runtime.
   (`#2213 <https://github.com/natcap/invest/issues/2213>`_)
+* Codesigning service will now start on server startup.
+  (`#2282 <https://github.com/natcap/invest/issues/2282>`_)
 
 Workbench
 =========
