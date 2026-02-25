@@ -34,16 +34,15 @@ jobs:
                   if [[ "${{ github.event_name }}" == "pull_request" ]]
                   then
                       PR_NUM="${{ github.event.pull_request.number }}"
-                      PR_USERNAME="${{ github.event.pull_request.user.login }}"
                       echo "Latest PR on main ($PR_NUM) was authored by $PR_USERNAME."
                       export PR_MSG="due to #$PR_NUM."
                   else
                       # event_name is presumed to have been a push.
-                      # A push could include a bunch of commits, so just get
-                      # the login name of the user that pushed
-                      PR_USERNAME="${{ github.event.push.pusher.username }}"
                       export PR_MSG='due to a push to `main`.'
                   fi
+                  export PR_USERNAME="${{ github.triggering_actor }}"
+                  export COMMIT_URL="https://github.com/${{ github.repository }}/commits/${{ github.sha }}"
+                  export GH_EVENT="${{ github.event }}"
 
                   # Using grep with pattern ^release filters out any autorelease branches.
                   # If no release branches are found, exit github actions.
