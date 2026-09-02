@@ -35,11 +35,12 @@ Installing with ``pip``
 
 The ``natcap.invest`` package is also available from the
 `Python Package Index <https://pypi.org/project/natcap.invest/>`_
-and installable with ``pip``.  Binary builds of ``natcap.invest`` are available for
-64-bit x86 architectures and also as a source distribution.  Note that if you
-have a computer with a non-x86-compatible architecture (such as a Mac with
-one of the M-series chips), you will either need to have a compiler installed
-or you will want to install ``natcap.invest`` from ``conda-forge`` (see above).
+and installable with ``pip``.  Binary builds of ``natcap.invest`` are available
+for 64-bit x86 Windows and for macOS on both Intel (``x86_64``) and Apple
+Silicon (``arm64``), and also as a source distribution.  Note that if you have a
+computer with a platform we do not publish binary builds for (such as Linux),
+you will either need to have a compiler installed or you will want to install
+``natcap.invest`` from ``conda-forge`` (see above).
 
 To install ``natcap.invest`` via ``pip``::
 

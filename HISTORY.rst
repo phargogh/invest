@@ -75,6 +75,19 @@ General
 * Fixed a bug where an error state while reading a remote GDAL dataset
   could result in a deadlock during invest validation.
   (`#2724 <https://github.com/natcap/invest/issues/2724>`_)
+* ``natcap.invest`` wheels are now built and published for Apple Silicon
+  (``arm64``) macOS in addition to Intel (``x86_64``) macOS.  Apple Silicon
+  users no longer need a compiler to ``pip install natcap.invest``.
+* The test suite and binary builds now run on both Intel and Apple Silicon
+  macOS runners in CI.
+
+Workbench
+=========
+* The macOS Workbench installer is now built natively for Apple Silicon
+  (``arm64``) in addition to Intel (``x86_64``).  Both disk images are
+  published with each release; download the ``arm64`` disk image for
+  M-series Macs.  The bundled ``micromamba`` used to manage plugin
+  environments now matches the installer's architecture.
 
 Wind Energy
 ===========
