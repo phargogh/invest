@@ -296,7 +296,11 @@ jobs:
         shell: bash -e {0}  # Don't use a login shell - should use local node.js
         env:
           CI: true
-        run: yarn test
+        run: |
+          echo "Node version: $(node --version)"
+          echo "Node path: $(which node)"
+          echo "Yarn path: $(which yarn)"
+          yarn test
 
   build-binaries:
     name: Build binaries
