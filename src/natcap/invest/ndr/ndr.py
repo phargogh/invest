@@ -1685,14 +1685,41 @@ def _calculate_ndr(
 
 def _calculate_sub_ndr(
         eff_sub, crit_len_sub, dist_to_channel_path, target_sub_ndr_path):
-    """Calculate subsurface: subndr = eff_sub(1-e^(-5*l/crit_len)."""
-    pygeoprocessing.raster_map(
-        op=lambda dist_to_channel: (
+    """Calculate subsurface: subndr = eff_sub(1-e^(-5*l/crit_len).
+
+    Args:
+        eff_sub (float): The user-defined subsurface efficienty for Nitrogen.
+        crit_len_sub (float): The user-defined critical subsurface length for
+            Nitrogen.
+        dist_to_channel_path (str): A path to a raster mapping the distance
+            to the nearest channel.
+        target_sub_ndr_path (str): The path to where the target subsurface
+            NDR raster should be written.
+
+    Returns:
+        ``None``
+    """
+    dist_to_channel_nodata = pygeoprocessing.get_raster_info(
+        dist_to_channel_path)['nodata']
+
+    def _sub_ndr_op(dist_to_channel):
+        array = numpy.full(dist_to_channel.shape, _TARGET_NODATA,
+                           dtype=numpy.float32)
+
+        # Mask out nodata values and also stream pixels.
+        valid_mask = (
+                ~pygeoprocessing.array_equals_nodata(
+                    dist_to_channel, dist_to_channel_nodata)
+                & (dist_to_channel != 0))
+        array[valid_mask] = (
             1 - eff_sub *
-            (1 - numpy.exp(-5 * dist_to_channel / crit_len_sub))),
-        rasters=[dist_to_channel_path],
-        target_path=target_sub_ndr_path,
-        target_nodata=_TARGET_NODATA)
+            (1 - numpy.exp(-5 * dist_to_channel[valid_mask] / crit_len_sub)))
+        return array
+
+    pygeoprocessing.raster_calculator(
+        [(dist_to_channel_path, 1)], _sub_ndr_op, target_sub_ndr_path,
+        gdal.GDT_Float32, _TARGET_NODATA
+    )
 
 
 def _aggregate_and_pickle_total(
