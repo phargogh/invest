@@ -38,7 +38,8 @@ jobs:
 
       # this is fast enough that it's not worth caching
       - name: Set up environment
-        run: pip install flake8
+        # flake8’s bundled Pyflakes plugin is incompatible with Pyflakes 4
+        run: pip install flake8 "pyflakes<4"
 
       - name: Lint with flake8
         run: |
